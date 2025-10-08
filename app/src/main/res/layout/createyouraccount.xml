@@ -109,7 +109,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="I agree to the Terms & Privacy"
+                android:text="I agree to the Terms &amp; Privacy"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
