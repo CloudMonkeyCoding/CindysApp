@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white">
@@ -190,55 +191,14 @@
     </LinearLayout>
 
     <!-- Bottom Navigation -->
-    <LinearLayout
-        android:id="@+id/bottomNav"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:weightSum="4"
-        android:background="#F7F7F7"
-        android:elevation="4dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Status"
-            android:textSize="12sp"
-            android:textColor="#000000"
-            android:drawableTop="@android:drawable/ic_menu_agenda" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Deliveries"
-            android:textSize="12sp"
-            android:textColor="#000000"
-            android:drawableTop="@android:drawable/ic_menu_directions" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="History"
-            android:textSize="12sp"
-            android:textColor="#000000"
-            android:drawableTop="@android:drawable/ic_menu_recent_history" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Wallets"
-            android:textSize="12sp"
-            android:textColor="#E53935"
-            android:drawableTop="@android:drawable/ic_menu_sort_by_size" />
-    </LinearLayout>
+        android:background="@android:color/white"
+        app:itemIconTint="@color/bottom_nav_selector"
+        app:itemTextColor="@color/bottom_nav_selector"
+        app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>
