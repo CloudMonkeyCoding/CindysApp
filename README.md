@@ -59,12 +59,23 @@ modifying Java sources:
 | `SHIFT_ACTION_PATH` | `SHIFT_SCHEDULE_PATH` | Relative path used when starting a shift. Override if your read and write endpoints differ. |
 | `SHIFT_FETCH_ACTION` | `next_shift` | The `action` query parameter sent when requesting the next scheduled shift. |
 | `SHIFT_START_ACTION` | `start_shift` | The `action` form value posted when starting a shift. |
-| `DEFAULT_STAFF_USER_ID` | `0` | The numeric `User_ID` whose shift will be shown. Set this to a valid staff user in your database. |
+| `USER_PROFILE_PATH` | `PHP/user_api.php` | Relative path queried to look up the signed-in driver's account details. |
+| `USER_PROFILE_ACTION` | `get_profile` | Action parameter passed when resolving the driver's profile. |
+| `DEFAULT_STAFF_USER_ID` | `0` | Optional fallback `User_ID` to use when no Firebase login is available. |
+
+When a driver signs in with Firebase, the **Status** screen automatically calls
+`USER_PROFILE_PATH` with the configured `USER_PROFILE_ACTION` and the driver's
+email to retrieve the numeric `user_id`. That identifier is then passed to the
+shift endpoints so the correct assignments load without hardcoding anything in
+the app. Only set `DEFAULT_STAFF_USER_ID` for manual testing on builds where no
+Firebase session exists.
 
 Declare the values inline while you build:
 
 ```sh
 ./gradlew assembleDebug \
+  -PUSER_PROFILE_PATH=PHP/user_api.php \
+  -PUSER_PROFILE_ACTION=get_profile \
   -PDEFAULT_STAFF_USER_ID=7 \
   -PSHIFT_SCHEDULE_PATH=PHP/shift_actions.php \
   -PSHIFT_FETCH_ACTION=next_shift
@@ -73,6 +84,8 @@ Declare the values inline while you build:
 or add them to `gradle.properties` so Android Studio picks them up automatically:
 
 ```
+USER_PROFILE_PATH=PHP/user_api.php
+USER_PROFILE_ACTION=get_profile
 DEFAULT_STAFF_USER_ID=7
 SHIFT_SCHEDULE_PATH=PHP/shift_actions.php
 SHIFT_ACTION_PATH=PHP/shift_actions.php

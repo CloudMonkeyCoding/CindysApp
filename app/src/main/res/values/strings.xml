@@ -18,12 +18,15 @@
     <string name="status_shift_empty_placeholder">No shift information is available yet.</string>
     <string name="status_shift_start_button">Start shift now</string>
     <string name="status_shift_start_unavailable_button">Shift already started</string>
-    <string name="status_shift_missing_user_id">Set DEFAULT_STAFF_USER_ID in gradle.properties to load staff shifts.</string>
+    <string name="status_shift_missing_user_id">Sign in to load your shift schedule.</string>
     <string name="status_shift_no_shift_message">No upcoming shifts were found.</string>
     <string name="status_shift_load_error">Unable to load your shift details right now.</string>
     <string name="status_shift_start_unavailable_toast">This shift cannot be started right now.</string>
     <string name="status_shift_start_success">Shift clock-in recorded.</string>
     <string name="status_shift_start_failed">Unable to start the shift. Please try again.</string>
+    <string name="status_shift_resolving_user_id">Looking up your staff profile...</string>
+    <string name="status_shift_user_id_error">Unable to find your staff profile. Please contact your manager.</string>
+    <string name="status_shift_user_id_lookup_in_progress">Still looking up your staff profile...</string>
     <string name="status_shift_started_at">Shift started at %1$s</string>
     <string name="status_shift_started_raw">Shift start recorded: %1$s</string>
     <string name="status_shift_starts_in">Starts in %1$s</string>

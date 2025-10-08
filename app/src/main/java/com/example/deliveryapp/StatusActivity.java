@@ -13,9 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import com.example.deliveryapp.BuildConfig;
 import com.example.deliveryapp.network.ServerConnectionManager;
 import com.example.deliveryapp.network.ShiftInfo;
 import com.example.deliveryapp.network.ShiftService;
+import com.example.deliveryapp.network.UserService;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -49,10 +53,14 @@ public class StatusActivity extends BottomNavActivity {
     private ProgressBar startShiftProgress;
 
     private final ShiftService shiftService = new ShiftService();
+    private final UserService userService = new UserService();
     @Nullable
     private ShiftInfo currentShift;
+    @Nullable
+    private Integer resolvedUserId;
     private boolean isShiftLoading;
     private boolean isStartRequestRunning;
+    private boolean isResolvingUserId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,7 +70,7 @@ public class StatusActivity extends BottomNavActivity {
 
         initViews();
         checkServerConnection();
-        loadShift(false);
+        resolveStaffIdentity(false);
     }
 
     private void initViews() {
@@ -83,7 +91,13 @@ public class StatusActivity extends BottomNavActivity {
         startShiftProgress = findViewById(R.id.startShiftProgress);
 
         if (shiftRefreshView != null) {
-            shiftRefreshView.setOnClickListener(v -> loadShift(true));
+            shiftRefreshView.setOnClickListener(v -> {
+                if (resolvedUserId != null) {
+                    loadShift(true);
+                } else {
+                    resolveStaffIdentity(true);
+                }
+            });
         }
 
         if (startShiftButton != null) {
@@ -123,13 +137,17 @@ public class StatusActivity extends BottomNavActivity {
     }
 
     private void loadShift(boolean userRequestedRefresh) {
-        if (BuildConfig.DEFAULT_STAFF_USER_ID <= 0) {
-            showNoShift(getString(R.string.status_shift_missing_user_id));
+        if (resolvedUserId == null) {
+            if (!isResolvingUserId) {
+                resolveStaffIdentity(userRequestedRefresh);
+            } else if (userRequestedRefresh) {
+                showToast(getString(R.string.status_shift_user_id_lookup_in_progress));
+            }
             return;
         }
 
         showShiftLoading(true);
-        shiftService.fetchUpcomingShift(BuildConfig.DEFAULT_STAFF_USER_ID, new ShiftService.ShiftFetchCallback() {
+        shiftService.fetchUpcomingShift(resolvedUserId, new ShiftService.ShiftFetchCallback() {
             @Override
             public void onSuccess(@Nullable ShiftInfo shiftInfo, @Nullable String serverMessage) {
                 showShiftLoading(false);
@@ -157,6 +175,74 @@ public class StatusActivity extends BottomNavActivity {
                 }
             }
         });
+    }
+
+    private void resolveStaffIdentity(boolean userRequestedRefresh) {
+        if (isResolvingUserId) {
+            if (userRequestedRefresh) {
+                showToast(getString(R.string.status_shift_user_id_lookup_in_progress));
+            }
+            return;
+        }
+
+        if (BuildConfig.DEFAULT_STAFF_USER_ID > 0) {
+            resolvedUserId = BuildConfig.DEFAULT_STAFF_USER_ID;
+            loadShift(userRequestedRefresh);
+            return;
+        }
+
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null || TextUtils.isEmpty(firebaseUser.getEmail())) {
+            resolvedUserId = null;
+            showShiftLoading(false);
+            showNoShift(getString(R.string.status_shift_missing_user_id));
+            if (userRequestedRefresh) {
+                showToast(getString(R.string.status_shift_missing_user_id));
+            }
+            return;
+        }
+
+        isResolvingUserId = true;
+        if (currentShift == null) {
+            showResolvingUserIdState();
+        } else {
+            showShiftLoading(true);
+        }
+
+        String email = firebaseUser.getEmail();
+        userService.fetchUserIdByEmail(email, new UserService.UserIdCallback() {
+            @Override
+            public void onSuccess(int userId) {
+                isResolvingUserId = false;
+                resolvedUserId = userId;
+                loadShift(userRequestedRefresh);
+            }
+
+            @Override
+            public void onError(@NonNull String errorMessage) {
+                isResolvingUserId = false;
+                resolvedUserId = null;
+                showShiftLoading(false);
+                String display = !TextUtils.isEmpty(errorMessage)
+                        ? errorMessage
+                        : getString(R.string.status_shift_user_id_error);
+                showNoShift(display);
+                if (userRequestedRefresh || currentShift != null) {
+                    showToast(display);
+                }
+            }
+        });
+    }
+
+    private void showResolvingUserIdState() {
+        showShiftLoading(true);
+        if (shiftCard != null && currentShift == null) {
+            shiftCard.setVisibility(View.GONE);
+        }
+        if (shiftEmptyView != null) {
+            shiftEmptyView.setText(R.string.status_shift_resolving_user_id);
+            shiftEmptyView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void showShiftLoading(boolean show) {
@@ -292,6 +378,16 @@ public class StatusActivity extends BottomNavActivity {
 
     private void updateStartButtonState() {
         if (startShiftButton == null) {
+            return;
+        }
+
+        if (resolvedUserId == null || isResolvingUserId) {
+            startShiftButton.setEnabled(false);
+            startShiftButton.setAlpha(0.6f);
+            startShiftButton.setText(R.string.status_shift_start_button);
+            if (startShiftProgress != null) {
+                startShiftProgress.setVisibility(View.GONE);
+            }
             return;
         }
 

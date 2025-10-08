@@ -22,6 +22,14 @@ val shiftStartAction = (project.findProperty("SHIFT_START_ACTION") as? String)
     ?.takeIf { it.isNotBlank() }
     ?: "start_shift"
 
+val userProfilePath = (project.findProperty("USER_PROFILE_PATH") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "PHP/user_api.php"
+
+val userProfileAction = (project.findProperty("USER_PROFILE_ACTION") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "get_profile"
+
 val defaultStaffUserId = (project.findProperty("DEFAULT_STAFF_USER_ID") as? String)
     ?.toIntOrNull()
     ?.takeIf { it > 0 }
@@ -48,6 +56,8 @@ android {
         buildConfigField("String", "SHIFT_ACTION_PATH", "\"${shiftActionPath.toBuildConfigString()}\"")
         buildConfigField("String", "SHIFT_FETCH_ACTION", "\"${shiftFetchAction.toBuildConfigString()}\"")
         buildConfigField("String", "SHIFT_START_ACTION", "\"${shiftStartAction.toBuildConfigString()}\"")
+        buildConfigField("String", "USER_PROFILE_PATH", "\"${userProfilePath.toBuildConfigString()}\"")
+        buildConfigField("String", "USER_PROFILE_ACTION", "\"${userProfileAction.toBuildConfigString()}\"")
         buildConfigField("int", "DEFAULT_STAFF_USER_ID", defaultStaffUserId.toString())
     }
 
