@@ -153,7 +153,8 @@ public class ShiftService {
                         if (!bodyString.isEmpty()) {
                             errorMessage += ": " + truncate(bodyString, 120);
                         }
-                        postToMain(() -> handler.onError(errorMessage));
+                        final String finalErrorMessage = errorMessage;
+                        postToMain(() -> handler.onError(finalErrorMessage));
                         return;
                     }
 
