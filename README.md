@@ -37,3 +37,11 @@ At runtime the **Status** screen pings the `API_BASE_URL` (optionally combined
 with the relative path in `res/values/strings.xml#server_health_path`) to show
 whether the server is reachable. Update that string if your health-check lives
 under a different endpoint, for example `api/ping`.
+
+For Cindy's Bakeshop the public PHP endpoints documented at
+<https://github.com/CloudMonkeyCoding/Cindys-Bakeshop> are hosted on
+`https://evotech.slarenasitsolutions.com/`. The default configuration points
+the health check at `PHP/notification_api.php`, which returns a 200 response
+even without query parameters. If you expose a different script for
+connectivity testing, override `server_health_path` accordingly or pass a
+custom `API_BASE_URL` when building.

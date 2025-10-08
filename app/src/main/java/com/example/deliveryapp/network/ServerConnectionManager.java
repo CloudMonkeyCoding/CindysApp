@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import com.example.deliveryapp.BuildConfig;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -33,6 +34,10 @@ public class ServerConnectionManager {
 
         okHttpClient = new OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
+                .callTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .build();
         mainThreadHandler = new Handler(Looper.getMainLooper());
     }
@@ -87,27 +92,25 @@ public class ServerConnectionManager {
 
     @Nullable
     private HttpUrl buildHealthUrl(@NonNull HttpUrl baseUrl, @Nullable String healthPath) {
-        if (healthPath == null || healthPath.trim().isEmpty() || "/".equals(healthPath.trim())) {
+        if (healthPath == null) {
             return baseUrl;
         }
 
-        String sanitizedPath = healthPath.trim();
-        while (sanitizedPath.startsWith("/")) {
-            sanitizedPath = sanitizedPath.substring(1);
-        }
-
-        if (sanitizedPath.isEmpty()) {
+        String trimmed = healthPath.trim();
+        if (trimmed.isEmpty()) {
             return baseUrl;
         }
 
-        HttpUrl.Builder builder = baseUrl.newBuilder();
-        for (String segment : sanitizedPath.split("/")) {
-            if (segment.isEmpty()) {
-                continue;
-            }
-            builder.addEncodedPathSegment(segment);
+        HttpUrl resolved = baseUrl.resolve(trimmed);
+        if (resolved != null) {
+            return resolved;
         }
-        return builder.build();
+
+        if (!trimmed.startsWith("/")) {
+            trimmed = "/" + trimmed;
+        }
+
+        return baseUrl.resolve(trimmed);
     }
 
     private void postResult(@NonNull ConnectionCallback callback, boolean isConnected, @Nullable String errorMessage) {
