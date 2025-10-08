@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:orientation="horizontal"
+    android:weightSum="3"
+    android:background="#FFFFFF"
+    android:elevation="4dp">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Status"
+        android:textSize="12sp"
+        android:textColor="#E53935"
+        android:drawableTop="@android:drawable/ic_menu_agenda"
+        android:drawablePadding="4dp" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Deliveries"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        android:drawableTop="@android:drawable/ic_menu_directions"
+        android:drawablePadding="4dp" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Account"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        android:drawableTop="@android:drawable/ic_menu_manage"
+        android:drawablePadding="4dp" />
+</LinearLayout>
