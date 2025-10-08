@@ -2,6 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+val apiBaseUrl = (project.findProperty("API_BASE_URL") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "https://evotech.slarenasitsolutions.com/"
+
+fun String.toBuildConfigString(): String = this
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+
 android {
     namespace = "com.example.deliveryapp"
     compileSdk = 35
@@ -14,6 +22,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "API_BASE_URL", "\"${apiBaseUrl.toBuildConfigString()}\"")
     }
 
     buildTypes {
@@ -24,6 +33,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -37,6 +49,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     testImplementation(libs.junit)

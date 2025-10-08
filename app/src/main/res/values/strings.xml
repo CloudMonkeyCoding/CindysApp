@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Delivery app</string>
+    <string name="status_initial_message">Checking server…</string>
+    <string name="status_checking_message">Checking server…</string>
+    <string name="status_connected">Connected to %1$s</string>
+    <string name="status_connection_failed">Unable to reach the delivery server</string>
+    <string name="server_health_path">/</string>
 </resources>

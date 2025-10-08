@@ -31,15 +31,34 @@
     </RelativeLayout>
 
     <!-- Status Banner -->
-    <TextView
-        android:id="@+id/statusBanner"
+    <FrameLayout
+        android:id="@+id/statusBannerContainer"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:text="Not Working"
-        android:gravity="center"
-        android:background="#EEEEEE"
-        android:textColor="#555555"
-        android:layout_below="@id/topBar" />
+        android:layout_height="48dp"
+        android:layout_below="@id/topBar">
+
+        <TextView
+            android:id="@+id/statusBanner"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="56dp"
+            android:text="@string/status_initial_message"
+            android:textColor="@color/status_checking_text"
+            android:background="@color/status_checking_bg"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/connectionProgress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <!-- Scrollable content -->
     <ScrollView
