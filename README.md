@@ -55,7 +55,7 @@ modifying Java sources:
 
 | Property | Default | Purpose |
 | --- | --- | --- |
-| `SHIFT_SCHEDULE_PATH` | `PHP/shift_actions.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the next shift. |
+| `SHIFT_SCHEDULE_PATH` | `PHP/shift_actions.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the next shift. Deploy a compatible PHP endpoint (for example `shift_actions.php`) or change this value if your backend exposes the shift utilities somewhere else. |
 | `SHIFT_ACTION_PATH` | `SHIFT_SCHEDULE_PATH` | Relative path used when starting a shift. Override if your read and write endpoints differ. |
 | `SHIFT_FETCH_ACTION` | `next_shift` | The `action` query parameter sent when requesting the next scheduled shift. |
 | `SHIFT_START_ACTION` | `start_shift` | The `action` form value posted when starting a shift. |
@@ -69,6 +69,12 @@ email to retrieve the numeric `user_id`. That identifier is then passed to the
 shift endpoints so the correct assignments load without hardcoding anything in
 the app. Only set `DEFAULT_STAFF_USER_ID` for manual testing on builds where no
 Firebase session exists.
+
+> **Tip:** If you see a *“Shift endpoint was not found (HTTP 404)”* message in
+> the app, the configured `SHIFT_SCHEDULE_PATH` probably does not exist on your
+> server. Deploy the `shift_actions.php` helper that wraps the functions in
+> [`PHP/shift_functions.php`](https://github.com/CloudMonkeyCoding/Cindys-Bakeshop/blob/main/PHP/shift_functions.php)
+> or point the Gradle property at the script that serves your JSON shift data.
 
 Declare the values inline while you build:
 

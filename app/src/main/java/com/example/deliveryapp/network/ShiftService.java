@@ -149,18 +149,17 @@ public class ShiftService {
                 try (Response res = response) {
                     String bodyString = res.body() != null ? res.body().string() : "";
                     if (!res.isSuccessful()) {
-                        String errorMessage = "HTTP " + res.code();
-                        if (!bodyString.isEmpty()) {
-                            errorMessage += ": " + truncate(bodyString, 120);
-                        }
-                        final String finalErrorMessage = errorMessage;
-                        postToMain(() -> handler.onError(finalErrorMessage));
+                        final String errorMessage = buildHttpErrorMessage(res.code(), bodyString);
+                        postToMain(() -> handler.onError(errorMessage));
                         return;
                     }
 
                     JSONObject body = parseJson(bodyString);
                     if (body == null) {
-                        postToMain(() -> handler.onError("Server returned an unexpected response."));
+                        final String finalMessage = looksLikeHtml(bodyString)
+                                ? htmlFallbackMessage()
+                                : "Server returned an unexpected response.";
+                        postToMain(() -> handler.onError(finalMessage));
                         return;
                     }
 
@@ -348,11 +347,39 @@ public class ShiftService {
         return null;
     }
 
-    private String truncate(@NonNull String value, int maxLength) {
-        if (value.length() <= maxLength) {
-            return value;
+    private String buildHttpErrorMessage(int code, @NonNull String rawBody) {
+        if (looksLikeHtml(rawBody)) {
+            if (code == 404) {
+                return "Shift endpoint was not found (HTTP 404). Confirm the SHIFT_SCHEDULE_PATH build property points to the correct PHP script.";
+            }
+            return htmlFallbackMessage();
         }
-        return value.substring(0, maxLength) + "…";
+
+        JSONObject json = parseJson(rawBody);
+        if (json != null) {
+            String message = extractMessage(json);
+            if (message != null && !message.isEmpty()) {
+                return message;
+            }
+        }
+
+        if (!rawBody.trim().isEmpty()) {
+            return "HTTP " + code + ": " + rawBody.trim();
+        }
+        return "HTTP " + code;
+    }
+
+    private boolean looksLikeHtml(@NonNull String value) {
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        String lower = trimmed.toLowerCase(Locale.US);
+        return lower.startsWith("<!doctype") || lower.startsWith("<html") || lower.contains("<body");
+    }
+
+    private String htmlFallbackMessage() {
+        return "Shift service returned HTML instead of JSON. Verify the configured PHP endpoint returns JSON as described in the Cindy's Bakeshop shift_functions.php utilities.";
     }
 
     private interface JsonResponseHandler {
