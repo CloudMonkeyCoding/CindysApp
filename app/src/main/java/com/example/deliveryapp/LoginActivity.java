@@ -1,5 +1,6 @@
 package com.example.deliveryapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -81,7 +82,9 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show();
-                        // TODO: Navigate to the next screen when available.
+                        Intent intent = new Intent(this, StatusActivity.class);
+                        startActivity(intent);
+                        finish();
                     } else {
                         String message = task.getException() != null
                                 ? task.getException().getMessage()
