@@ -55,7 +55,7 @@ modifying Java sources:
 
 | Property | Default | Purpose |
 | --- | --- | --- |
-| `SHIFT_SCHEDULE_PATH` | `PHP/shift_actions.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the next shift. Deploy a compatible PHP endpoint (for example `shift_actions.php`) or change this value if your backend exposes the shift utilities somewhere else. |
+| `SHIFT_SCHEDULE_PATH` | `PHP/shift_actions.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the next shift. The Android client sends a `POST` request with `action=<SHIFT_FETCH_ACTION>` and `user_id=<staff id>`, so ensure your PHP handler accepts form posts. Deploy a compatible endpoint (for example `shift_actions.php`) or change this value if your backend exposes the shift utilities somewhere else. |
 | `SHIFT_ACTION_PATH` | `SHIFT_SCHEDULE_PATH` | Relative path used when starting a shift. Override if your read and write endpoints differ. |
 | `SHIFT_FETCH_ACTION` | `next_shift` | The `action` query parameter sent when requesting the next scheduled shift. |
 | `SHIFT_START_ACTION` | `start_shift` | The `action` form value posted when starting a shift. |

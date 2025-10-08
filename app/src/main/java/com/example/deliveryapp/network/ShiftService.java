@@ -63,14 +63,14 @@ public class ShiftService {
             return;
         }
 
-        HttpUrl requestUrl = baseUrl.newBuilder()
-                .addQueryParameter("action", BuildConfig.SHIFT_FETCH_ACTION)
-                .addQueryParameter("user_id", String.valueOf(userId))
+        RequestBody requestBody = new FormBody.Builder()
+                .add("action", BuildConfig.SHIFT_FETCH_ACTION)
+                .add("user_id", String.valueOf(userId))
                 .build();
 
         Request request = new Request.Builder()
-                .url(requestUrl)
-                .get()
+                .url(baseUrl)
+                .post(requestBody)
                 .build();
 
         executeRequest(request, new JsonResponseHandler() {
