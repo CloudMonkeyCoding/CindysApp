@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#000000">
+
+    <!-- Simple motorbike shape -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M5,18a3,3 0 1,0 0,-6a3,3 0 1,0 0,6zM19,18a3,3 0 1,0 0,-6a3,3 0 1,0 0,6zM10,9l1.5,3h5l-1,-2.5l3,0v-2h-5l-1,-2h-3v3zM5,14h2.5l-1.5,-3h-1a2,2 0 0,0 -2,2v1h2z" />
+</vector>

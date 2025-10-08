@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Top Toolbar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#F32C2C"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <!-- Hamburger Menu -->
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+             />
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Deliveries"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <!-- Content -->
+    <TextView
+        android:id="@+id/tvNoDeliveries"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="You have no pending Deliveries"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black" />
+
+    <LinearLayout
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="5"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Status"
+            android:textSize="12sp"
+            android:textColor="#E53935"
+            android:drawableTop="@android:drawable/ic_menu_agenda"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Deliveries"
+            android:textSize="12sp"
+            android:textColor="#757575"
+            android:drawableTop="@android:drawable/ic_menu_directions"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Map"
+            android:textSize="12sp"
+            android:textColor="#757575"
+            android:drawableTop="@android:drawable/ic_menu_mapmode"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="History"
+            android:textSize="12sp"
+            android:textColor="#757575"
+            android:drawableTop="@android:drawable/ic_menu_recent_history"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Wallets"
+            android:textSize="12sp"
+            android:textColor="#757575"
+            android:drawableTop="@android:drawable/ic_menu_sort_by_size"/>
+    </LinearLayout>
+
+</RelativeLayout>

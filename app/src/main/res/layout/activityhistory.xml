@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp">
+
+        <!-- Hamburger -->
+        <ImageView
+            android:id="@+id/ivMenu"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_menu"
+            android:tint="@android:color/black" />
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="History"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Filters Row -->
+    <LinearLayout
+        android:id="@+id/filtersRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_below="@id/header"
+        android:padding="8dp">
+
+        <!-- From Date -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="From:"
+                android:textSize="12sp"
+                android:textColor="#000" />
+
+            <EditText
+                android:id="@+id/etFromDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:hint="________"
+                android:inputType="date"
+                android:textSize="12sp"
+                android:background="@null" />
+        </LinearLayout>
+
+        <!-- To Date -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To:"
+                android:textSize="12sp"
+                android:textColor="#000" />
+
+            <EditText
+                android:id="@+id/etToDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:hint="________"
+                android:inputType="date"
+                android:textSize="12sp"
+                android:background="@null" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Summary Row -->
+    <LinearLayout
+        android:id="@+id/summaryRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/filtersRow"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
+
+        <!-- Total Orders -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Orders"
+                android:textSize="12sp"
+                android:textColor="#000" />
+
+            <TextView
+                android:id="@+id/tvTotalOrders"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="25"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#E53935" />
+        </LinearLayout>
+
+        <!-- Total Collections -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Collections"
+                android:textSize="12sp"
+                android:textColor="#000" />
+
+            <TextView
+                android:id="@+id/tvTotalCollections"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₱ 55,000.00"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#E53935" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Orders List -->
+    <ScrollView
+        android:id="@+id/scrollHistory"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNav"
+        android:layout_below="@id/summaryRow"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:id="@+id/orderHistoryList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Sample Date Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sept 1, 2025"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#E53935"
+                android:layout_marginTop="8dp" />
+
+            <!-- Sample Order Item -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="#125444"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sept 1, 2025   10:00 AM   Item: 5   ₱ 900.00"
+                    android:textSize="12sp"
+                    android:textColor="#000000" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:background="#F7F7F7"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Status"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_agenda" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Deliveries"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_directions" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="History"
+            android:textSize="12sp"
+            android:textColor="#E53935"
+            android:drawableTop="@android:drawable/ic_menu_recent_history" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Wallets"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_sort_by_size" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F22E2E"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Cindys Logo at Top (250dp) -->
+        <ImageView
+            android:id="@+id/imgCindysLogo"
+            android:layout_width="match_parent"
+            android:layout_height="190dp"
+            android:src="@drawable/cindys_logo"
+            android:contentDescription="Cindy's Logo"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Delivery Image -->
+        <ImageView
+            android:id="@+id/imgLogo"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:src="@drawable/ic_delivery_rider"
+            android:contentDescription="@string/app_name"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DELIVERY APP"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Email Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusTopStart="50dp"
+            app:boxCornerRadiusTopEnd="50dp"
+            app:boxCornerRadiusBottomStart="50dp"
+            app:boxCornerRadiusBottomEnd="50dp"
+            app:boxStrokeColor="@android:color/white">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Email or Phone"
+                android:textColorHint="@android:color/white"
+                android:textColor="@android:color/white"
+                android:drawableStart="@drawable/ic_email"
+                android:drawablePadding="10dp"
+                android:paddingStart="12dp"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- Password Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusTopStart="50dp"
+            app:boxCornerRadiusTopEnd="50dp"
+            app:boxCornerRadiusBottomStart="50dp"
+            app:boxCornerRadiusBottomEnd="50dp"
+            app:boxStrokeColor="@android:color/white">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Password"
+                android:textColorHint="@android:color/white"
+                android:textColor="@android:color/white"
+                android:drawableStart="@drawable/ic_lock"
+                android:drawablePadding="10dp"
+                android:paddingStart="12dp"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- Forgot Password -->
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Forgot Password?"
+            android:textColor="@android:color/black"
+            android:textSize="12sp"
+            android:layout_gravity="end" />
+
+
+        <!-- Login Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="14dp"
+            android:text="Login"
+            android:textColor="#F22E2E"
+            android:backgroundTint="@android:color/white"
+            app:cornerRadius="25dp" />
+
+        <!-- Or Text -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="or"
+            android:textColor="@android:color/white"
+
+            android:textSize="14sp" />
+
+        <!-- Create Account -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCreateAccount"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_marginTop="10dp"
+            android:text="Create an account"
+            android:textColor="#F22E2E"
+            android:backgroundTint="#DDDDDD"
+            app:cornerRadius="25dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

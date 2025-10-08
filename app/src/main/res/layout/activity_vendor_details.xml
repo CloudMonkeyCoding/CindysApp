@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="@android:color/white"
+        android:elevation="4dp">
+
+        <!-- Hamburger Menu -->
+        <ImageView
+            android:id="@+id/ivMenu"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_menu"
+            android:tint="@android:color/black" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Go to Cindy’s"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+
+    <!-- Vendor Details -->
+    <LinearLayout
+        android:id="@+id/vendorDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/header"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cindy’s / Vendor Details"
+            android:textSize="12sp"
+            android:textColor="#555555" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Cindy’s - Hagonoy"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_call"
+                android:tint="#F32C2C" />
+        </LinearLayout>
+
+        <!-- Address -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_location"
+                android:tint="@android:color/black"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hagonoy Bulacan"
+                android:textSize="13sp"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/vendorDetails"
+        android:layout_marginTop="8dp"
+        android:background="#DDDDDD" />
+
+    <!-- Arrival Time -->
+    <TextView
+        android:id="@+id/tvArrival"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider1"
+        android:layout_marginTop="8dp"
+        android:layout_centerHorizontal="true"
+        android:text="Arrive at 10:51 AM"
+        android:textSize="13sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Map Preview -->
+    <ImageView
+        android:id="@+id/imgMap"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_below="@id/tvArrival"
+        android:layout_margin="16dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sample_map"
+        android:background="@drawable/border_map" />
+
+    <!-- Arrived Button -->
+    <Button
+        android:id="@+id/btnArrived"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@id/imgMap"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="72dp"
+        android:background="@drawable/btn_start_bg2"
+        android:text="Arrived at the Cindy’s"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="15sp" />
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:background="#F7F7F7"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Status"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_agenda" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Deliveries"
+            android:textSize="12sp"
+            android:textColor="#E53935"
+            android:drawableTop="@android:drawable/ic_menu_directions" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="History"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_recent_history" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Wallets"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_sort_by_size" />
+    </LinearLayout>
+
+</RelativeLayout>

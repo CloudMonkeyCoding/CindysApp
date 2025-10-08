@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F32C2C">
+
+    <!-- Logo (now on top) -->
+    <ImageView
+        android:id="@+id/imgCindysLogo"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:src="@drawable/cindys_logo"
+        android:contentDescription="Cindys Logo"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter" />
+
+    <!-- Delivery Guy (under logo) -->
+    <ImageView
+        android:id="@+id/imgDelivery"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_below="@id/imgCindysLogo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp"
+        android:src="@drawable/delivery_guy"
+        android:contentDescription="Delivery Guy" />
+
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/tvSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imgDelivery"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="6dp"
+        android:text="DELIVERY APP"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Email Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/emailInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvSubtitle"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@android:color/white"
+        app:boxCornerRadiusTopStart="25dp"
+        app:boxCornerRadiusTopEnd="25dp"
+        app:boxCornerRadiusBottomStart="25dp"
+        app:boxCornerRadiusBottomEnd="25dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Email or Phone"
+            android:textColor="@android:color/white"
+            android:textColorHint="@android:color/white"
+            android:drawableStart="@drawable/ic_email"
+            android:drawablePadding="10dp"
+            android:background="@android:color/transparent"
+            android:paddingStart="12dp"
+            android:inputType="textEmailAddress" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Password Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/passwordInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/emailInput"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@android:color/white"
+        app:boxCornerRadiusTopStart="25dp"
+        app:boxCornerRadiusTopEnd="25dp"
+        app:boxCornerRadiusBottomStart="25dp"
+        app:boxCornerRadiusBottomEnd="25dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Password"
+            android:textColor="@android:color/white"
+            android:textColorHint="@android:color/white"
+            android:drawableStart="@drawable/ic_lock"
+            android:drawablePadding="10dp"
+            android:background="@android:color/transparent"
+            android:paddingStart="12dp"
+            android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Forgot Password -->
+    <TextView
+        android:id="@+id/tvForgotPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/passwordInput"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="24dp"
+        android:text="Forgot Password?"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+</RelativeLayout>

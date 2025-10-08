@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp">
+
+        <!-- Hamburger Menu -->
+        <ImageView
+            android:id="@+id/ivMenu"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_menu"
+            android:tint="@android:color/black" />
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Confirm Drop -off"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Customer Details -->
+    <LinearLayout
+        android:id="@+id/customerDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/header"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Customer Details"
+                android:textSize="12sp"
+                android:textColor="#555555" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="Edit"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#E53935" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Charlene Joy Tolentino"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="nakalista dapat dyan yung 11 na orders mo\nscroll down yan"
+            android:textSize="11sp"
+            android:textColor="#555555"
+            android:layout_marginTop="2dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_location"
+                android:tint="@android:color/black"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hagonoy Bulacan"
+                android:textSize="13sp"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/customerDetails"
+        android:layout_marginTop="8dp"
+        android:background="#DDDDDD" />
+
+    <!-- Proof of Drop-off -->
+    <LinearLayout
+        android:id="@+id/proofSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/divider1"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp">
+
+        <!-- Title + Add Photo -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Proof of Drop-off"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#000000" />
+
+            <TextView
+                android:id="@+id/tvAddPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="Add Photo"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#E53935" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add a photo as proof of drop-off"
+            android:textSize="12sp"
+            android:textColor="#555555"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="*Required"
+            android:textSize="12sp"
+            android:textColor="#E53935"
+            android:layout_marginTop="2dp" />
+
+        <!-- Image Preview -->
+        <ImageView
+            android:id="@+id/imgProof"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/border_map"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Confirm Button -->
+    <Button
+        android:id="@+id/btnConfirmDropOff"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="72dp"
+        android:background="@drawable/btn_disabled_bg"
+        android:text="Confirm Drop - Off"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:enabled="false" />
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:background="#F7F7F7"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Status"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_agenda" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Deliveries"
+            android:textSize="12sp"
+            android:textColor="#E53935"
+            android:drawableTop="@android:drawable/ic_menu_directions" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="History"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_recent_history" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Wallets"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:drawableTop="@android:drawable/ic_menu_sort_by_size" />
+    </LinearLayout>
+
+</RelativeLayout>

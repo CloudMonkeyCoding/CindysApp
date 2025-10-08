@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Start Shift"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="20dp"/>
+
+    <!-- Vehicle Type -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Vehicle Type"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp"/>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardMotorbike"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <ImageView
+                android:id="@+id/imgMotorbike"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_motorbike"
+                android:tint="@drawable/selector_icon_tint"
+                android:contentDescription="Motorbike" />
+
+            <TextView
+                android:id="@+id/tvMotorbike"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Motorbike"
+                android:textColor="@drawable/selector_text_color"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#BDBDBD"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Bag Type -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bag Type"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp"/>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardBag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <ImageView
+                android:id="@+id/imgBag"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_bag"
+                android:tint="@drawable/selector_icon_tint"
+                android:contentDescription="Bag" />
+
+            <TextView
+                android:id="@+id/tvBag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Standard Bag"
+                android:textColor="@drawable/selector_text_color"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#BDBDBD"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Switch Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="I am available to extend my shift"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"/>
+
+        <Switch
+            android:id="@+id/switchExtendShift"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:thumbTint="#F32C2C"
+            android:trackTint="#F5B5B5"/>
+    </LinearLayout>
+
+    <!-- Start Button -->
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Start"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:backgroundTint="#F32C2C"
+        android:fontFamily="sans-serif-medium"/>
+</LinearLayout>
