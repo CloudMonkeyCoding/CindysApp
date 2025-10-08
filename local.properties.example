@@ -1,0 +1,8 @@
+# Copy this file to local.properties and update the SDK path below so Gradle
+# knows where the Android SDK is installed on your machine. Example values:
+#   Windows: sdk.dir=C:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
+#   macOS:   sdk.dir=/Users/<you>/Library/Android/sdk
+#   Linux:   sdk.dir=/home/<you>/Android/Sdk
+# If Android Studio is installed, you can find the path under
+# Settings > Appearance & Behavior > System Settings > Android SDK.
+sdk.dir=/absolute/path/to/Android/Sdk
