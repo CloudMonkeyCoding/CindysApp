@@ -6,6 +6,27 @@ val apiBaseUrl = (project.findProperty("API_BASE_URL") as? String)
     ?.takeIf { it.isNotBlank() }
     ?: "https://evotech.slarenasitsolutions.com/"
 
+val shiftSchedulePath = (project.findProperty("SHIFT_SCHEDULE_PATH") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "PHP/shift_actions.php"
+
+val shiftActionPath = (project.findProperty("SHIFT_ACTION_PATH") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: shiftSchedulePath
+
+val shiftFetchAction = (project.findProperty("SHIFT_FETCH_ACTION") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "next_shift"
+
+val shiftStartAction = (project.findProperty("SHIFT_START_ACTION") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "start_shift"
+
+val defaultStaffUserId = (project.findProperty("DEFAULT_STAFF_USER_ID") as? String)
+    ?.toIntOrNull()
+    ?.takeIf { it > 0 }
+    ?: 0
+
 fun String.toBuildConfigString(): String = this
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
@@ -23,6 +44,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"${apiBaseUrl.toBuildConfigString()}\"")
+        buildConfigField("String", "SHIFT_SCHEDULE_PATH", "\"${shiftSchedulePath.toBuildConfigString()}\"")
+        buildConfigField("String", "SHIFT_ACTION_PATH", "\"${shiftActionPath.toBuildConfigString()}\"")
+        buildConfigField("String", "SHIFT_FETCH_ACTION", "\"${shiftFetchAction.toBuildConfigString()}\"")
+        buildConfigField("String", "SHIFT_START_ACTION", "\"${shiftStartAction.toBuildConfigString()}\"")
+        buildConfigField("int", "DEFAULT_STAFF_USER_ID", defaultStaffUserId.toString())
     }
 
     buildTypes {

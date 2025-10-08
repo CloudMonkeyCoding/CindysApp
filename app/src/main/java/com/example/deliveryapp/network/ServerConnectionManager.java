@@ -25,6 +25,8 @@ public class ServerConnectionManager {
 
     private final OkHttpClient okHttpClient;
     private final Handler mainThreadHandler;
+    @Nullable
+    private final HttpUrl baseUrl;
 
     private ServerConnectionManager() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
@@ -40,6 +42,7 @@ public class ServerConnectionManager {
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .build();
         mainThreadHandler = new Handler(Looper.getMainLooper());
+        baseUrl = HttpUrl.parse(BuildConfig.API_BASE_URL);
     }
 
     public static ServerConnectionManager getInstance() {
@@ -54,13 +57,12 @@ public class ServerConnectionManager {
     }
 
     public void checkConnection(@Nullable String healthPath, @NonNull ConnectionCallback callback) {
-        HttpUrl baseUrl = HttpUrl.parse(BuildConfig.API_BASE_URL);
         if (baseUrl == null) {
             postResult(callback, false, "Invalid base URL");
             return;
         }
 
-        HttpUrl requestUrl = buildHealthUrl(baseUrl, healthPath);
+        HttpUrl requestUrl = resolveRelativeUrl(baseUrl, healthPath);
         if (requestUrl == null) {
             postResult(callback, false, "Unable to build request URL");
             return;
@@ -91,12 +93,29 @@ public class ServerConnectionManager {
     }
 
     @Nullable
-    private HttpUrl buildHealthUrl(@NonNull HttpUrl baseUrl, @Nullable String healthPath) {
-        if (healthPath == null) {
+    public HttpUrl getBaseUrl() {
+        return baseUrl;
+    }
+
+    @NonNull
+    public OkHttpClient getHttpClient() {
+        return okHttpClient;
+    }
+
+    @Nullable
+    public HttpUrl buildUrl(@Nullable String relativePath) {
+        if (baseUrl == null) {
+            return null;
+        }
+        return resolveRelativeUrl(baseUrl, relativePath);
+    }
+
+    private HttpUrl resolveRelativeUrl(@NonNull HttpUrl baseUrl, @Nullable String path) {
+        if (path == null) {
             return baseUrl;
         }
 
-        String trimmed = healthPath.trim();
+        String trimmed = path.trim();
         if (trimmed.isEmpty()) {
             return baseUrl;
         }
