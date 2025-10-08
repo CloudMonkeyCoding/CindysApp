@@ -8,7 +8,7 @@ val apiBaseUrl = (project.findProperty("API_BASE_URL") as? String)
 
 val shiftSchedulePath = (project.findProperty("SHIFT_SCHEDULE_PATH") as? String)
     ?.takeIf { it.isNotBlank() }
-    ?: "PHP/shift_actions.php"
+    ?: "PHP/shift_functions.php"
 
 val shiftActionPath = (project.findProperty("SHIFT_ACTION_PATH") as? String)
     ?.takeIf { it.isNotBlank() }
