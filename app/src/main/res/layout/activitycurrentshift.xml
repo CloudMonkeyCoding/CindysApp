@@ -151,11 +151,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="space_between">
+                    android:gravity="center_vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="Available for Shift Extension"
                         android:textSize="14sp"
                         android:textColor="#000000" />
@@ -170,12 +171,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="space_between"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="Auto Accept Orders"
                         android:textSize="14sp"
                         android:textColor="#000000" />
