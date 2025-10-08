@@ -1,8 +1,8 @@
 package com.example.deliveryapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,9 +18,10 @@ public class MainActivity extends AppCompatActivity {
 
         Button startButton = findViewById(R.id.btnStart);
         if (startButton != null) {
-            startButton.setOnClickListener(v ->
-                    Toast.makeText(this, R.string.app_name, Toast.LENGTH_SHORT).show()
-            );
+            startButton.setOnClickListener(v -> {
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+            });
         }
     }
 }
