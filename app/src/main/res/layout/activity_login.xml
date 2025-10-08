@@ -114,4 +114,31 @@
         android:textColor="@android:color/white"
         android:textSize="12sp" />
 
+    <!-- Login Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvForgotPassword"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="@android:color/white"
+        android:text="Login"
+        android:textAllCaps="false"
+        android:textColor="#F32C2C"
+        android:textSize="16sp"
+        app:cornerRadius="24dp" />
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/loginProgress"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnLogin"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp"
+        android:visibility="gone" />
+
 </RelativeLayout>
