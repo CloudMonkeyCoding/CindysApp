@@ -31,15 +31,34 @@
     </RelativeLayout>
 
     <!-- Status Banner -->
-    <TextView
-        android:id="@+id/statusBanner"
+    <FrameLayout
+        android:id="@+id/statusBannerContainer"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:text="Not Working"
-        android:gravity="center"
-        android:background="#EEEEEE"
-        android:textColor="#555555"
-        android:layout_below="@id/topBar" />
+        android:layout_height="48dp"
+        android:layout_below="@id/topBar">
+
+        <TextView
+            android:id="@+id/statusBanner"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="56dp"
+            android:text="@string/status_initial_message"
+            android:textColor="@color/status_checking_text"
+            android:background="@color/status_checking_bg"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/connectionProgress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <!-- Scrollable content -->
     <ScrollView
@@ -64,110 +83,212 @@
                 android:gravity="center_vertical">
 
                 <TextView
+                    android:id="@+id/shiftHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Upcoming Shift"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
+                    android:layout_weight="1"
+                    android:text="@string/status_shift_header"
                     android:textColor="#000000"
-                    android:layout_weight="1"/>
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/shiftRefresh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="View All"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="4dp"
+                    android:text="@string/status_shift_refresh"
                     android:textColor="#FF3B30"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <!-- Shift Card -->
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_card"
-                android:padding="16dp"
-                android:layout_margin="16dp"
-                android:elevation="4dp">
+                android:layout_margin="16dp">
 
-                <!-- Date & Time Row -->
                 <LinearLayout
+                    android:id="@+id/shiftCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:background="@drawable/bg_card"
+                    android:elevation="4dp"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                    <!-- Date -->
+                    <!-- Date & Time Row -->
                     <LinearLayout
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:background="#FFF4E5"
-                        android:layout_marginEnd="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Sep"
-                            android:textColor="#FF9800"
-                            android:textSize="12sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="3"
-                            android:textStyle="bold"
-                            android:textSize="22sp"
-                            android:textColor="#000000"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Wed"
-                            android:textSize="12sp"
-                            android:textColor="#777777"/>
-                    </LinearLayout>
-
-                    <!-- Shift Info -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="11:00 - 5:00"
-                            android:textStyle="bold"
-                            android:textSize="16sp"
-                            android:textColor="#000000"/>
+                        <!-- Date -->
+                        <LinearLayout
+                            android:id="@+id/shiftDateContainer"
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="#FFF4E5"
+                            android:gravity="center"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Hagonoy Bulacan"
-                            android:textSize="14sp"
-                            android:textColor="#555555"/>
+                            <TextView
+                                android:id="@+id/shiftMonth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/status_shift_month_placeholder"
+                                android:textColor="#FF9800"
+                                android:textSize="12sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:id="@+id/shiftDay"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/status_shift_day_placeholder"
+                                android:textColor="#000000"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/shiftWeekday"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/status_shift_weekday_placeholder"
+                                android:textColor="#777777"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <!-- Shift Info -->
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="Starting in 16mins"
-                            android:textColor="#4CAF50"
-                            android:textSize="12sp"/>
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/shiftTimeRange"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/status_shift_time_placeholder"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/shiftStatusText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/status_shift_status_placeholder"
+                                android:textColor="#555555"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/shiftLocation"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/status_shift_location_placeholder"
+                                android:textColor="#555555"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/shiftCountdown"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/status_shift_countdown_placeholder"
+                                android:textColor="#4CAF50"
+                                android:textSize="12sp" />
+                        </LinearLayout>
                     </LinearLayout>
+
+                    <!-- Ready Button -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+
+                        <Button
+                            android:id="@+id/startShiftButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:backgroundTint="#FF3B30"
+                            android:padding="10dp"
+                            android:text="@string/status_shift_start_button"
+                            android:textColor="#FFFFFF" />
+
+                        <ProgressBar
+                            android:id="@+id/startShiftProgress"
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:visibility="gone" />
+                    </FrameLayout>
                 </LinearLayout>
 
-                <!-- Ready Button -->
-                <Button
+                <ProgressBar
+                    android:id="@+id/shiftLoading"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/shiftEmptyView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="4dp"
+                android:text="@string/status_shift_empty_placeholder"
+                android:textAlignment="center"
+                android:textColor="#777777"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/shiftListSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="24dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/shiftListHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="8dp"
+                    android:text="@string/status_shift_list_header"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/shiftListEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Start Shift Now"
-                    android:backgroundTint="#FF3B30"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="12dp"
-                    android:padding="10dp"/>
+                    android:padding="12dp"
+                    android:text="@string/status_shift_list_empty"
+                    android:textColor="#777777"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/shiftListContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

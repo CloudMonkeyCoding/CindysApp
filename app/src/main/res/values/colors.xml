@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="status_checking_bg">#FFF8E1</color>
+    <color name="status_checking_text">#FF8F00</color>
+    <color name="status_connected_bg">#E8F5E9</color>
+    <color name="status_connected_text">#2E7D32</color>
+    <color name="status_error_bg">#FFEBEE</color>
+    <color name="status_error_text">#C62828</color>
+    <color name="status_neutral_text">#555555</color>
 </resources>

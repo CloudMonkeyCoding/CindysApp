@@ -5,43 +5,81 @@
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
-    <!-- Top Toolbar -->
     <RelativeLayout
+        android:id="@+id/deliveriesToolbar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="#F32C2C"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
-        <!-- Hamburger Menu -->
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="16dp"
-            android:src="@android:drawable/ic_menu_sort_by_size"
-             />
-        <!-- Title -->
         <TextView
+            android:id="@+id/deliveriesTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="Deliveries"
+            android:layout_centerVertical="true"
+            android:text="@string/deliveries_toolbar_title"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/deliveriesRefresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="@string/deliveries_refresh"
+            android:textAllCaps="true"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:padding="8dp" />
     </RelativeLayout>
 
-    <!-- Content -->
-    <TextView
-        android:id="@+id/tvNoDeliveries"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="You have no pending Deliveries"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black" />
+    <ScrollView
+        android:id="@+id/deliveriesScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/deliveriesToolbar"
+        android:layout_above="@id/bottomNavigation"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <ProgressBar
+                android:id="@+id/deliveriesLoading"
+                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/deliveriesMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center"
+                android:textColor="#4A4A4A"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/deliveriesListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="8dp"
+                android:paddingBottom="80dp" />
+        </LinearLayout>
+    </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
