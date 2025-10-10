@@ -19,6 +19,8 @@ import androidx.core.content.ContextCompat;
 import com.example.deliveryapp.network.OrderInfo;
 
 import java.lang.ref.WeakReference;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Stores the driver's active order and coordinates ongoing GPS tracking for it.
@@ -49,6 +51,7 @@ public final class OrderTrackingManager {
     private final LocationManager locationManager;
     @Nullable
     private TrackingLocationListener locationListener;
+    private final Set<LocationUpdateListener> locationUpdateListeners = new CopyOnWriteArraySet<>();
 
     private OrderTrackingManager(@NonNull Context context) {
         applicationContext = context.getApplicationContext();
@@ -79,6 +82,71 @@ public final class OrderTrackingManager {
         }
 
         return new ActivationResult(true, permissionGranted, trackingStarted);
+    }
+
+    @Nullable
+    public TrackedOrder getActiveOrder() {
+        int orderId = preferences.getInt(KEY_ACTIVE_ORDER_ID, 0);
+        if (orderId <= 0) {
+            return null;
+        }
+
+        int userId = preferences.getInt(KEY_ACTIVE_ORDER_USER_ID, 0);
+        String status = nullIfEmpty(preferences.getString(KEY_ACTIVE_ORDER_STATUS, null));
+        String summary = nullIfEmpty(preferences.getString(KEY_ACTIVE_ORDER_SUMMARY, null));
+        String address = nullIfEmpty(preferences.getString(KEY_ACTIVE_ORDER_ADDRESS, null));
+
+        return new TrackedOrder(orderId, userId, status, summary, address);
+    }
+
+    public boolean hasActiveOrder() {
+        return getActiveOrder() != null;
+    }
+
+    public boolean canAccessLocation() {
+        return hasLocationPermission();
+    }
+
+    public boolean ensureLocationTracking() {
+        if (!hasLocationPermission()) {
+            return false;
+        }
+        return startLocationTracking();
+    }
+
+    public void addLocationUpdateListener(@NonNull LocationUpdateListener listener) {
+        locationUpdateListeners.add(listener);
+        TrackedLocation lastKnown = getLastKnownLocation();
+        if (lastKnown != null) {
+            listener.onLocationUpdated(lastKnown);
+        }
+    }
+
+    public void removeLocationUpdateListener(@NonNull LocationUpdateListener listener) {
+        locationUpdateListeners.remove(listener);
+    }
+
+    @Nullable
+    public TrackedLocation getLastKnownLocation() {
+        String latitudeValue = preferences.getString(KEY_LAST_LATITUDE, null);
+        String longitudeValue = preferences.getString(KEY_LAST_LONGITUDE, null);
+        if (latitudeValue == null || longitudeValue == null) {
+            return null;
+        }
+
+        try {
+            double latitude = Double.parseDouble(latitudeValue);
+            double longitude = Double.parseDouble(longitudeValue);
+            String provider = nullIfEmpty(preferences.getString(KEY_LAST_PROVIDER, null));
+            long timestamp = preferences.getLong(KEY_LAST_LOCATION_TIME, 0L);
+            if (timestamp <= 0L) {
+                return new TrackedLocation(latitude, longitude, provider, System.currentTimeMillis());
+            }
+            return new TrackedLocation(latitude, longitude, provider, timestamp);
+        } catch (NumberFormatException exception) {
+            Log.w(TAG, "Unable to parse stored location", exception);
+            return null;
+        }
     }
 
     private void storeActiveOrder(@NonNull OrderInfo order) {
@@ -150,17 +218,43 @@ public final class OrderTrackingManager {
     }
 
     private void handleLocationUpdate(@NonNull Location location) {
+        TrackedLocation trackedLocation = new TrackedLocation(
+                location.getLatitude(),
+                location.getLongitude(),
+                nullIfEmpty(location.getProvider()),
+                location.getTime()
+        );
+
         preferences.edit()
                 .putString(KEY_LAST_LATITUDE, String.valueOf(location.getLatitude()))
                 .putString(KEY_LAST_LONGITUDE, String.valueOf(location.getLongitude()))
                 .putString(KEY_LAST_PROVIDER, safeString(location.getProvider()))
                 .putLong(KEY_LAST_LOCATION_TIME, location.getTime())
                 .apply();
+
+        notifyLocationListeners(trackedLocation);
     }
 
     @NonNull
     private static String safeString(@Nullable String value) {
         return value != null ? value : "";
+    }
+
+    @Nullable
+    private static String nullIfEmpty(@Nullable String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value;
+    }
+
+    private void notifyLocationListeners(@NonNull TrackedLocation location) {
+        if (locationUpdateListeners.isEmpty()) {
+            return;
+        }
+        for (LocationUpdateListener listener : locationUpdateListeners) {
+            listener.onLocationUpdated(location);
+        }
     }
 
     public static final class ActivationResult {
@@ -216,6 +310,84 @@ public final class OrderTrackingManager {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
             // Deprecated callback required for older API levels
+        }
+    }
+
+    public interface LocationUpdateListener {
+        void onLocationUpdated(@NonNull TrackedLocation location);
+    }
+
+    public static final class TrackedOrder {
+        private final int orderId;
+        private final int userId;
+        @Nullable
+        private final String status;
+        @Nullable
+        private final String summary;
+        @Nullable
+        private final String address;
+
+        private TrackedOrder(int orderId, int userId, @Nullable String status, @Nullable String summary, @Nullable String address) {
+            this.orderId = orderId;
+            this.userId = userId;
+            this.status = status;
+            this.summary = summary;
+            this.address = address;
+        }
+
+        public int getOrderId() {
+            return orderId;
+        }
+
+        public int getUserId() {
+            return userId;
+        }
+
+        @Nullable
+        public String getStatus() {
+            return status;
+        }
+
+        @Nullable
+        public String getSummary() {
+            return summary;
+        }
+
+        @Nullable
+        public String getAddress() {
+            return address;
+        }
+    }
+
+    public static final class TrackedLocation {
+        private final double latitude;
+        private final double longitude;
+        @Nullable
+        private final String provider;
+        private final long timestampMillis;
+
+        private TrackedLocation(double latitude, double longitude, @Nullable String provider, long timestampMillis) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.provider = provider;
+            this.timestampMillis = timestampMillis;
+        }
+
+        public double getLatitude() {
+            return latitude;
+        }
+
+        public double getLongitude() {
+            return longitude;
+        }
+
+        @Nullable
+        public String getProvider() {
+            return provider;
+        }
+
+        public long getTimestampMillis() {
+            return timestampMillis;
         }
     }
 }

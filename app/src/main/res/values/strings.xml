@@ -67,4 +67,22 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
+    <string name="map_title">Go to Customer</string>
+    <string name="map_active_order_header">Active delivery</string>
+    <string name="map_order_number">Order #%1$d</string>
+    <string name="map_order_status">Status: %1$s</string>
+    <string name="map_order_status_placeholder">Status unavailable</string>
+    <string name="map_order_summary_placeholder">Item summary unavailable</string>
+    <string name="map_order_address">Deliver to: %1$s</string>
+    <string name="map_order_address_missing">Delivery address unavailable</string>
+    <string name="map_no_active_order">Select a delivery from the Deliveries tab to begin navigation.</string>
+    <string name="map_location_header">Driver location</string>
+    <string name="map_location_permission_missing">Enable location permissions to keep tracking your position.</string>
+    <string name="map_location_unavailable">Waiting for your current location…</string>
+    <string name="map_location_provider_unknown">Unknown provider</string>
+    <string name="map_location_coordinates">Lat %.5f, Lng %.5f (%3$s)</string>
+    <string name="map_location_timestamp">Updated at %1$s</string>
+    <string name="map_open_in_maps_button">Open in Maps</string>
+    <string name="map_navigation_missing_address">No delivery address is available for this order.</string>
+    <string name="map_navigation_app_missing">No maps app is installed to handle navigation.</string>
 </resources>
