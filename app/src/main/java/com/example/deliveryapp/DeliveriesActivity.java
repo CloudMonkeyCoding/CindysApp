@@ -198,6 +198,7 @@ public class DeliveriesActivity extends BottomNavActivity {
             TextView orderNumber = itemView.findViewById(R.id.orderNumber);
             TextView orderStatus = itemView.findViewById(R.id.orderStatus);
             TextView orderSummary = itemView.findViewById(R.id.orderSummary);
+            TextView orderAddress = itemView.findViewById(R.id.orderAddress);
             TextView orderMeta = itemView.findViewById(R.id.orderMeta);
             TextView orderTotal = itemView.findViewById(R.id.orderTotal);
 
@@ -215,6 +216,14 @@ public class DeliveriesActivity extends BottomNavActivity {
                 summary = getResources().getQuantityString(R.plurals.deliveries_item_count, count == 0 ? 0 : count, count);
             }
             orderSummary.setText(summary);
+
+            String address = order.getDeliveryAddress();
+            if (!TextUtils.isEmpty(address)) {
+                orderAddress.setText(getString(R.string.deliveries_order_address, address));
+                orderAddress.setVisibility(View.VISIBLE);
+            } else {
+                orderAddress.setVisibility(View.GONE);
+            }
 
             String meta = buildMetaLine(order);
             if (TextUtils.isEmpty(meta)) {

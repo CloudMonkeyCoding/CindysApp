@@ -56,6 +56,7 @@
     <string name="deliveries_order_number">Order #%1$d</string>
     <string name="deliveries_order_status">Status: %1$s</string>
     <string name="deliveries_order_status_unknown">Status unavailable</string>
+    <string name="deliveries_order_address">Delivery address: %1$s</string>
     <string name="deliveries_order_total">Total: %1$s</string>
     <string name="deliveries_order_meta_fallback">Details unavailable</string>
     <plurals name="deliveries_item_count">

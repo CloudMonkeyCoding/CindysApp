@@ -211,6 +211,7 @@ public class OrderService {
             itemSummary = null;
         }
         String imageUrl = optString(object, "Image_Url", "image_url", "Image_Path", "image");
+        String deliveryAddress = parseDeliveryAddress(object);
         if (orderId <= 0) {
             return null;
         }
@@ -224,8 +225,65 @@ public class OrderService {
                 itemCount,
                 totalAmount,
                 itemSummary,
-                imageUrl
+                imageUrl,
+                deliveryAddress
         );
+    }
+
+    @Nullable
+    private String parseDeliveryAddress(@NonNull JSONObject object) {
+        String direct = optString(
+                object,
+                "Delivery_Address",
+                "delivery_address",
+                "Address",
+                "address",
+                "DeliveryAddress",
+                "deliveryAddress"
+        );
+        if (!TextUtils.isEmpty(direct)) {
+            return direct;
+        }
+
+        List<String> parts = new ArrayList<>();
+        collectAddressParts(parts, object);
+
+        JSONObject nestedDelivery = object.optJSONObject("delivery_address");
+        if (nestedDelivery != null) {
+            collectAddressParts(parts, nestedDelivery);
+        }
+
+        JSONObject shipping = object.optJSONObject("shipping_address");
+        if (shipping != null) {
+            collectAddressParts(parts, shipping);
+        }
+
+        if (parts.isEmpty()) {
+            return null;
+        }
+        return TextUtils.join(", ", parts);
+    }
+
+    private void collectAddressParts(@NonNull List<String> parts, @NonNull JSONObject source) {
+        addAddressPart(parts, optString(source, "Address_Line1", "address_line1", "Address1", "address1", "Street", "street"));
+        addAddressPart(parts, optString(source, "Address_Line2", "address_line2", "Address2", "address2", "Barangay", "barangay"));
+        addAddressPart(parts, optString(source, "City", "city", "Municipality", "municipality"));
+        addAddressPart(parts, optString(source, "Province", "province", "State", "state"));
+        addAddressPart(parts, optString(source, "Postal_Code", "postal_code", "Zip_Code", "zip_code", "Zip", "zip"));
+        addAddressPart(parts, optString(source, "Country", "country"));
+    }
+
+    private void addAddressPart(@NonNull List<String> parts, @Nullable String value) {
+        if (TextUtils.isEmpty(value)) {
+            return;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        if (!parts.contains(trimmed)) {
+            parts.add(trimmed);
+        }
     }
 
     @NonNull

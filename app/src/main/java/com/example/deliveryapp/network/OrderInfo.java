@@ -24,6 +24,8 @@ public class OrderInfo {
     private final String itemSummary;
     @Nullable
     private final String imageUrl;
+    @Nullable
+    private final String deliveryAddress;
 
     public OrderInfo(
             int orderId,
@@ -35,7 +37,8 @@ public class OrderInfo {
             int itemCount,
             double totalAmount,
             @Nullable String itemSummary,
-            @Nullable String imageUrl
+            @Nullable String imageUrl,
+            @Nullable String deliveryAddress
     ) {
         this.orderId = orderId;
         this.userId = userId;
@@ -47,6 +50,7 @@ public class OrderInfo {
         this.totalAmount = totalAmount;
         this.itemSummary = itemSummary;
         this.imageUrl = imageUrl;
+        this.deliveryAddress = deliveryAddress;
     }
 
     public int getOrderId() {
@@ -95,6 +99,11 @@ public class OrderInfo {
         return imageUrl;
     }
 
+    @Nullable
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -109,6 +118,7 @@ public class OrderInfo {
                 ", totalAmount=" + totalAmount +
                 ", itemSummary='" + itemSummary + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
+                ", deliveryAddress='" + deliveryAddress + '\'' +
                 '}';
     }
 }
