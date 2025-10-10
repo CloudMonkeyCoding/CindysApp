@@ -64,11 +64,6 @@ public final class AppConfig {
             "list"
     );
 
-    public static final String GOOGLE_MAPS_API_KEY = resolveString(
-            "GOOGLE_MAPS_API_KEY",
-            ""
-    );
-
     private AppConfig() {
         // Utility class
     }
