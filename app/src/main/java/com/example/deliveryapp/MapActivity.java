@@ -1,7 +1,9 @@
 package com.example.deliveryapp;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -12,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 
 import com.example.deliveryapp.tracking.OrderTrackingManager;
 
@@ -20,6 +23,9 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MapActivity extends BottomNavActivity implements OrderTrackingManager.LocationUpdateListener {
+
+    private static final int REQUEST_LOCATION_PERMISSIONS = 2001;
+    private static final String KEY_LOCATION_PERMISSIONS_REQUESTED = "location_permissions_requested";
 
     private View activeOrderContainer;
     private TextView emptyStateView;
@@ -35,6 +41,7 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     private OrderTrackingManager orderTrackingManager;
     @Nullable
     private OrderTrackingManager.TrackedOrder activeOrder;
+    private boolean hasRequestedLocationPermissions;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,6 +50,12 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         setupBottomNavigation(R.id.menu_map);
 
         orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
+        if (savedInstanceState != null) {
+            hasRequestedLocationPermissions = savedInstanceState.getBoolean(
+                    KEY_LOCATION_PERMISSIONS_REQUESTED,
+                    false
+            );
+        }
         initViews();
         refreshActiveOrder();
         refreshLocationState();
@@ -52,7 +65,9 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     protected void onStart() {
         super.onStart();
         orderTrackingManager.addLocationUpdateListener(this);
-        orderTrackingManager.ensureLocationTracking();
+        if (!orderTrackingManager.ensureLocationTracking()) {
+            requestLocationPermissionsIfNeeded();
+        }
     }
 
     @Override
@@ -60,6 +75,9 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         super.onResume();
         refreshActiveOrder();
         refreshLocationState();
+        if (!orderTrackingManager.canAccessLocation() && !hasRequestedLocationPermissions) {
+            requestLocationPermissionsIfNeeded();
+        }
     }
 
     @Override
@@ -234,5 +252,47 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     @Override
     public void onLocationUpdated(@NonNull OrderTrackingManager.TrackedLocation location) {
         runOnUiThread(() -> updateLocationViews(location));
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_LOCATION_PERMISSIONS_REQUESTED, hasRequestedLocationPermissions);
+    }
+
+    private void requestLocationPermissionsIfNeeded() {
+        if (orderTrackingManager.canAccessLocation()) {
+            return;
+        }
+        hasRequestedLocationPermissions = true;
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                REQUEST_LOCATION_PERMISSIONS
+        );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQUEST_LOCATION_PERMISSIONS) {
+            return;
+        }
+
+        boolean granted = false;
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                granted = true;
+                break;
+            }
+        }
+
+        if (granted) {
+            orderTrackingManager.ensureLocationTracking();
+            Toast.makeText(this, R.string.map_location_permission_granted, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, R.string.map_location_permission_denied, Toast.LENGTH_SHORT).show();
     }
 }

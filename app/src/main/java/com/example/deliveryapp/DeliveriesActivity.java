@@ -1,5 +1,7 @@
 package com.example.deliveryapp;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 
 import com.example.deliveryapp.network.OrderInfo;
 import com.example.deliveryapp.network.OrderService;
@@ -31,6 +34,8 @@ import java.util.Locale;
 
 public class DeliveriesActivity extends BottomNavActivity {
 
+    private static final int REQUEST_LOCATION_PERMISSIONS = 1001;
+
     private View refreshView;
     private ProgressBar deliveriesLoading;
     private TextView deliveriesMessage;
@@ -41,6 +46,8 @@ public class DeliveriesActivity extends BottomNavActivity {
     private OrderTrackingManager orderTrackingManager;
     @Nullable
     private Integer resolvedUserId;
+    @Nullable
+    private OrderInfo pendingPermissionOrder;
     private boolean isResolvingUserId;
     private boolean isLoading;
 
@@ -256,7 +263,9 @@ public class DeliveriesActivity extends BottomNavActivity {
         OrderTrackingManager.ActivationResult result = orderTrackingManager.activateOrder(order);
 
         if (!result.isLocationPermissionGranted()) {
-            showToast(getString(R.string.deliveries_tracking_permission_missing, order.getOrderId()));
+            pendingPermissionOrder = order;
+            requestLocationPermissions();
+            showToast(getString(R.string.deliveries_tracking_permission_request, order.getOrderId()));
             return;
         }
 
@@ -264,6 +273,57 @@ public class DeliveriesActivity extends BottomNavActivity {
             showToast(getString(R.string.deliveries_tracking_started, order.getOrderId()));
         } else {
             showToast(getString(R.string.deliveries_tracking_unavailable, order.getOrderId()));
+        }
+    }
+
+    private void requestLocationPermissions() {
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                REQUEST_LOCATION_PERMISSIONS
+        );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != REQUEST_LOCATION_PERMISSIONS) {
+            return;
+        }
+
+        boolean granted = false;
+        for (int grantResult : grantResults) {
+            if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                granted = true;
+                break;
+            }
+        }
+
+        if (granted) {
+            boolean trackingStarted = orderTrackingManager.ensureLocationTracking();
+            if (pendingPermissionOrder != null) {
+                int orderId = pendingPermissionOrder.getOrderId();
+                pendingPermissionOrder = null;
+                if (trackingStarted) {
+                    showToast(getString(R.string.deliveries_tracking_permission_granted, orderId));
+                } else {
+                    showToast(getString(R.string.deliveries_tracking_unavailable, orderId));
+                }
+            } else {
+                if (trackingStarted) {
+                    showToast(getString(R.string.deliveries_tracking_permission_granted_generic));
+                } else {
+                    showToast(getString(R.string.deliveries_tracking_permission_granted_unavailable));
+                }
+            }
+            return;
+        }
+
+        if (pendingPermissionOrder != null) {
+            showToast(getString(R.string.deliveries_tracking_permission_denied, pendingPermissionOrder.getOrderId()));
+            pendingPermissionOrder = null;
+        } else {
+            showToast(getString(R.string.deliveries_tracking_permission_denied_generic));
         }
     }
 

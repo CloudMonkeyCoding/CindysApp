@@ -60,6 +60,12 @@
     <string name="deliveries_deliver_button">Deliver</string>
     <string name="deliveries_tracking_started">Order #%1$d marked as active. GPS tracking started.</string>
     <string name="deliveries_tracking_permission_missing">Order #%1$d marked as active. Enable location permissions to begin GPS tracking.</string>
+    <string name="deliveries_tracking_permission_request">Location access is required to track order #%1$d. Grant permission to continue.</string>
+    <string name="deliveries_tracking_permission_granted">Location permissions enabled. Starting tracking for order #%1$d.</string>
+    <string name="deliveries_tracking_permission_granted_generic">Location permissions enabled.</string>
+    <string name="deliveries_tracking_permission_granted_unavailable">Location permissions enabled, but GPS tracking could not start.</string>
+    <string name="deliveries_tracking_permission_denied">Location permissions denied. Tracking for order #%1$d will remain paused.</string>
+    <string name="deliveries_tracking_permission_denied_generic">Location permissions denied. Tracking remains unavailable.</string>
     <string name="deliveries_tracking_unavailable">Order #%1$d marked as active, but GPS tracking could not start.</string>
     <string name="deliveries_order_total">Total: %1$s</string>
     <string name="deliveries_order_meta_fallback">Details unavailable</string>
@@ -78,6 +84,8 @@
     <string name="map_no_active_order">Select a delivery from the Deliveries tab to begin navigation.</string>
     <string name="map_location_header">Driver location</string>
     <string name="map_location_permission_missing">Enable location permissions to keep tracking your position.</string>
+    <string name="map_location_permission_granted">Location permissions enabled. Resuming tracking.</string>
+    <string name="map_location_permission_denied">Location permissions denied. Tracking will remain paused.</string>
     <string name="map_location_unavailable">Waiting for your current location…</string>
     <string name="map_location_provider_unknown">Unknown provider</string>
     <string name="map_location_coordinates">Lat %.5f, Lng %.5f (%3$s)</string>
