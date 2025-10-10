@@ -57,7 +57,7 @@ modifying Java sources:
 | --- | --- | --- |
 | `SHIFT_SCHEDULE_PATH` | `PHP/shift_functions.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the next shift. The Android client sends a `POST` request with `action=<SHIFT_FETCH_ACTION>` and `user_id=<staff id>`, so ensure your PHP handler accepts form posts. The Cindy's Bakeshop repo ships `shift_functions.php`; point this at that script (or a thin wrapper around it) unless your backend exposes the utilities somewhere else. |
 | `SHIFT_ACTION_PATH` | `SHIFT_SCHEDULE_PATH` | Relative path used when starting a shift. Override if your read and write endpoints differ. |
-| `SHIFT_FETCH_ACTION` | `next_shift` | The `action` query parameter sent when requesting the next scheduled shift. |
+| `SHIFT_FETCH_ACTION` | `get_shift_schedules` | The `action` form field sent when requesting the next scheduled shift. |
 | `SHIFT_START_ACTION` | `start_shift` | The `action` form value posted when starting a shift. |
 | `USER_PROFILE_PATH` | `PHP/user_api.php` | Relative path queried to look up the signed-in driver's account details. |
 | `USER_PROFILE_ACTION` | `get_profile` | Action parameter passed when resolving the driver's profile. |
@@ -85,7 +85,7 @@ Declare the values inline while you build:
   -PUSER_PROFILE_ACTION=get_profile \
   -PDEFAULT_STAFF_USER_ID=7 \
   -PSHIFT_SCHEDULE_PATH=PHP/shift_functions.php \
-  -PSHIFT_FETCH_ACTION=next_shift
+  -PSHIFT_FETCH_ACTION=get_shift_schedules
 ```
 
 or add them to `gradle.properties` so Android Studio picks them up automatically:
@@ -96,7 +96,7 @@ USER_PROFILE_ACTION=get_profile
 DEFAULT_STAFF_USER_ID=7
 SHIFT_SCHEDULE_PATH=PHP/shift_functions.php
 SHIFT_ACTION_PATH=PHP/shift_functions.php
-SHIFT_FETCH_ACTION=next_shift
+SHIFT_FETCH_ACTION=get_shift_schedules
 SHIFT_START_ACTION=start_shift
 ```
 

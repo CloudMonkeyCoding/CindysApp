@@ -63,8 +63,12 @@ public class ShiftService {
             return;
         }
 
+        String fetchAction = BuildConfig.SHIFT_FETCH_ACTION != null && !BuildConfig.SHIFT_FETCH_ACTION.trim().isEmpty()
+                ? BuildConfig.SHIFT_FETCH_ACTION
+                : "get_shift_schedules";
+
         RequestBody requestBody = new FormBody.Builder()
-                .add("action", BuildConfig.SHIFT_FETCH_ACTION)
+                .add("action", fetchAction)
                 .add("user_id", String.valueOf(userId))
                 .build();
 
@@ -154,7 +158,7 @@ public class ShiftService {
                         return;
                     }
 
-                    JSONObject body = parseJson(bodyString);
+                    JSONObject body = normalizeJsonPayload(bodyString);
                     if (body == null) {
                         final String finalMessage = looksLikeHtml(bodyString)
                                 ? htmlFallbackMessage()
@@ -177,13 +181,41 @@ public class ShiftService {
     }
 
     @Nullable
-    private JSONObject parseJson(@NonNull String bodyString) {
+    private JSONObject normalizeJsonPayload(@NonNull String bodyString) {
+        Object parsed = parseJsonValue(bodyString);
+        if (parsed instanceof JSONObject) {
+            return (JSONObject) parsed;
+        }
+        if (parsed instanceof JSONArray) {
+            JSONArray array = (JSONArray) parsed;
+            JSONObject wrapper = new JSONObject();
+            try {
+                wrapper.put("shifts", array);
+            } catch (JSONException ignored) {
+                return null;
+            }
+            return wrapper;
+        }
         if (bodyString.trim().isEmpty()) {
             return new JSONObject();
         }
+        return null;
+    }
+
+    @Nullable
+    private Object parseJsonValue(@NonNull String bodyString) {
+        String trimmed = bodyString.trim();
+        if (trimmed.isEmpty()) {
+            return new JSONObject();
+        }
         try {
-            return new JSONObject(bodyString);
-        } catch (JSONException e) {
+            return new JSONObject(trimmed);
+        } catch (JSONException ignored) {
+            // Try parsing as an array next.
+        }
+        try {
+            return new JSONArray(trimmed);
+        } catch (JSONException ignored) {
             return null;
         }
     }
@@ -205,6 +237,10 @@ public class ShiftService {
                 String value = ((String) successObj).trim().toLowerCase(Locale.US);
                 return value.equals("true") || value.equals("success") || value.equals("1");
             }
+        }
+
+        if (body.has("shifts") || body.has("shift") || body.has("data")) {
+            return true;
         }
 
         String status = body.optString("status", "").trim().toLowerCase(Locale.US);
@@ -359,11 +395,23 @@ public class ShiftService {
             return htmlFallbackMessage();
         }
 
-        JSONObject json = parseJson(rawBody);
-        if (json != null) {
+        Object parsed = parseJsonValue(rawBody);
+        if (parsed instanceof JSONObject) {
+            JSONObject json = (JSONObject) parsed;
             String message = extractMessage(json);
             if (message != null && !message.isEmpty()) {
                 return message;
+            }
+        } else if (parsed instanceof JSONArray) {
+            JSONArray array = (JSONArray) parsed;
+            if (array.length() > 0) {
+                JSONObject first = array.optJSONObject(0);
+                if (first != null) {
+                    String message = extractMessage(first);
+                    if (message != null && !message.isEmpty()) {
+                        return message;
+                    }
+                }
             }
         }
 

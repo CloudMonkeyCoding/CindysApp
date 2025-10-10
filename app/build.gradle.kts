@@ -16,7 +16,7 @@ val shiftActionPath = (project.findProperty("SHIFT_ACTION_PATH") as? String)
 
 val shiftFetchAction = (project.findProperty("SHIFT_FETCH_ACTION") as? String)
     ?.takeIf { it.isNotBlank() }
-    ?: "next_shift"
+    ?: "get_shift_schedules"
 
 val shiftStartAction = (project.findProperty("SHIFT_START_ACTION") as? String)
     ?.takeIf { it.isNotBlank() }
