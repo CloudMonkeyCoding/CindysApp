@@ -16,6 +16,26 @@ Once the SDK path is configured you can build the app from the command line with
 If you prefer Android Studio, open the project directory in the IDE and it will
 reuse the same `local.properties` configuration.
 
+## Enabling Google Maps
+
+The **Deliveries** screen embeds the Google Maps SDK to preview the driver's
+location. Supply a Maps API key when you build so tiles can load correctly:
+
+```sh
+./gradlew assembleDebug -PGOOGLE_MAPS_API_KEY=your_real_maps_key
+```
+
+Any of the following Gradle properties are accepted (the first non-empty value
+wins):
+
+* `GOOGLE_MAPS_API_KEY`
+* `MAPS_API_KEY`
+
+You can also export an environment variable named `GOOGLE_MAPS_API_KEY` or
+`MAPS_API_KEY` before invoking Gradle. When no key is provided the app surfaces
+an inline warning in place of the map so the missing configuration is obvious at
+runtime.
+
 ## Pointing the app at your own server
 
 The app now looks for a delivery back-end at `https://evotech.slarenasitsolutions.com/`

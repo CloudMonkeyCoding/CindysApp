@@ -43,6 +43,16 @@ val orderListAction = (project.findProperty("ORDER_LIST_ACTION") as? String)
     ?.takeIf { it.isNotBlank() }
     ?: "list"
 
+val googleMapsApiKey = sequenceOf(
+    project.findProperty("GOOGLE_MAPS_API_KEY") as? String,
+    project.findProperty("MAPS_API_KEY") as? String,
+    System.getenv("GOOGLE_MAPS_API_KEY"),
+    System.getenv("MAPS_API_KEY")
+)
+    .firstOrNull { !it.isNullOrBlank() }
+    ?.trim()
+    ?: ""
+
 fun String.toBuildConfigString(): String = this
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
@@ -69,6 +79,9 @@ android {
         buildConfigField("int", "DEFAULT_STAFF_USER_ID", defaultStaffUserId.toString())
         buildConfigField("String", "ORDER_LIST_PATH", "\"${orderListPath.toBuildConfigString()}\"")
         buildConfigField("String", "ORDER_LIST_ACTION", "\"${orderListAction.toBuildConfigString()}\"")
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${googleMapsApiKey.toBuildConfigString()}\"")
+
+        manifestPlaceholders += mapOf("GOOGLE_MAPS_API_KEY" to googleMapsApiKey)
     }
 
     buildTypes {
@@ -95,7 +108,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(platform(libs.firebase.bom))
+    implementation("com.google.android.gms:play-services-maps:${libs.versions.playServicesMaps.get()}")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation(libs.firebase.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

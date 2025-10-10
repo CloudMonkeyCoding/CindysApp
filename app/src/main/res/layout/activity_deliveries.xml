@@ -36,11 +36,43 @@
             android:padding="8dp" />
     </RelativeLayout>
 
+    <FrameLayout
+        android:id="@+id/deliveriesMapContainer"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_below="@id/deliveriesToolbar"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp">
+
+        <FrameLayout
+            android:id="@+id/deliveriesMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/deliveriesMapStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_map_status"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/deliveries_map_loading"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
     <ScrollView
         android:id="@+id/deliveriesScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/deliveriesToolbar"
+        android:layout_below="@id/deliveriesMapContainer"
         android:layout_above="@id/bottomNavigation"
         android:fillViewport="true">
 
