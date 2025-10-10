@@ -386,8 +386,8 @@ public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyC
 
         try {
             String mapsApiKey = AppConfig.GOOGLE_MAPS_API_KEY;
-            if (!TextUtils.isEmpty(mapsApiKey)) {
-                MapsInitializer.setApiKey(mapsApiKey);
+            if (TextUtils.isEmpty(mapsApiKey)) {
+                Log.w(TAG, "Google Maps API key is not set; ensure it is provided via the AndroidManifest metadata.");
             }
             MapsInitializer.initialize(getApplicationContext(), MapsInitializer.Renderer.LATEST, renderer -> {});
             hasConfiguredMapsSdk = true;
