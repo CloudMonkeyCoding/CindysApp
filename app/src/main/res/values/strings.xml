@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">Delivery app</string>
+    <string name="status_banner_not_working">Not Working</string>
+    <string name="status_banner_in_progress">Shift In Progress</string>
+    <string name="status_banner_completed">Shift Completed</string>
+    <string name="status_banner_scheduled">Shift Scheduled</string>
+    <string name="status_start_shift">Start Shift</string>
+    <string name="status_end_shift">End Shift</string>
+    <string name="status_no_shift">You have no shifts scheduled today.</string>
+    <string name="status_loading_error">Unable to load shift information. Pull to refresh or try again later.</string>
+    <string name="status_starting_placeholder">Checking schedule…</string>
+    <string name="status_shift_ready">Ready to start</string>
+    <string name="status_duration_hours_minutes">%1$d hr %2$d min</string>
+    <string name="status_duration_minutes">%1$d min</string>
+    <string name="status_starting_soon">Starting in %1$s</string>
+    <string name="status_default_location">Cindy&#39;s Bakeshop HQ</string>
+    <string name="status_shift_completed_message">Shift completed</string>
+    <string name="status_shift_in_progress_message">Shift in progress</string>
 </resources>
