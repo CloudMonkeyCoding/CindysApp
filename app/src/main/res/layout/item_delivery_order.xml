@@ -58,4 +58,12 @@
         android:textSize="16sp"
         android:textStyle="bold" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/deliverButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/deliveries_deliver_button"
+        android:textAllCaps="false" />
+
 </LinearLayout>

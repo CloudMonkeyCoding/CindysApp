@@ -57,6 +57,10 @@
     <string name="deliveries_order_status">Status: %1$s</string>
     <string name="deliveries_order_status_unknown">Status unavailable</string>
     <string name="deliveries_order_address">Delivery address: %1$s</string>
+    <string name="deliveries_deliver_button">Deliver</string>
+    <string name="deliveries_tracking_started">Order #%1$d marked as active. GPS tracking started.</string>
+    <string name="deliveries_tracking_permission_missing">Order #%1$d marked as active. Enable location permissions to begin GPS tracking.</string>
+    <string name="deliveries_tracking_unavailable">Order #%1$d marked as active, but GPS tracking could not start.</string>
     <string name="deliveries_order_total">Total: %1$s</string>
     <string name="deliveries_order_meta_fallback">Details unavailable</string>
     <plurals name="deliveries_item_count">

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -16,6 +17,7 @@ import androidx.annotation.Nullable;
 import com.example.deliveryapp.network.OrderInfo;
 import com.example.deliveryapp.network.OrderService;
 import com.example.deliveryapp.network.UserService;
+import com.example.deliveryapp.tracking.OrderTrackingManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -36,6 +38,7 @@ public class DeliveriesActivity extends BottomNavActivity {
 
     private final OrderService orderService = new OrderService();
     private final UserService userService = new UserService();
+    private OrderTrackingManager orderTrackingManager;
     @Nullable
     private Integer resolvedUserId;
     private boolean isResolvingUserId;
@@ -48,6 +51,7 @@ public class DeliveriesActivity extends BottomNavActivity {
         setupBottomNavigation(R.id.menu_deliveries);
 
         initViews();
+        orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
         showMessage(getString(R.string.deliveries_loading));
         showLoading(true);
         resolveStaffIdentity(false);
@@ -201,6 +205,7 @@ public class DeliveriesActivity extends BottomNavActivity {
             TextView orderAddress = itemView.findViewById(R.id.orderAddress);
             TextView orderMeta = itemView.findViewById(R.id.orderMeta);
             TextView orderTotal = itemView.findViewById(R.id.orderTotal);
+            Button deliverButton = itemView.findViewById(R.id.deliverButton);
 
             orderNumber.setText(getString(R.string.deliveries_order_number, order.getOrderId()));
 
@@ -235,9 +240,31 @@ public class DeliveriesActivity extends BottomNavActivity {
             String formattedTotal = currencyFormat.format(totalAmount);
             orderTotal.setText(getString(R.string.deliveries_order_total, formattedTotal));
 
+            if (deliverButton != null) {
+                deliverButton.setOnClickListener(v -> onDeliverClicked(order));
+            }
+
             deliveriesListContainer.addView(itemView);
         }
         deliveriesListContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void onDeliverClicked(@NonNull OrderInfo order) {
+        if (orderTrackingManager == null) {
+            orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
+        }
+        OrderTrackingManager.ActivationResult result = orderTrackingManager.activateOrder(order);
+
+        if (!result.isLocationPermissionGranted()) {
+            showToast(getString(R.string.deliveries_tracking_permission_missing, order.getOrderId()));
+            return;
+        }
+
+        if (result.isTrackingStarted()) {
+            showToast(getString(R.string.deliveries_tracking_started, order.getOrderId()));
+        } else {
+            showToast(getString(R.string.deliveries_tracking_unavailable, order.getOrderId()));
+        }
     }
 
     @NonNull
