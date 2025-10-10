@@ -16,30 +16,51 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.deliveryapp.network.OrderInfo;
 import com.example.deliveryapp.network.OrderService;
 import com.example.deliveryapp.network.UserService;
 import com.example.deliveryapp.tracking.OrderTrackingManager;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.text.NumberFormat;
+import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class DeliveriesActivity extends BottomNavActivity {
+public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyCallback, OrderTrackingManager.LocationUpdateListener {
 
     private static final int REQUEST_LOCATION_PERMISSIONS = 1001;
+    private static final float MAP_DEFAULT_ZOOM = 15f;
 
     private View refreshView;
     private ProgressBar deliveriesLoading;
     private TextView deliveriesMessage;
     private LinearLayout deliveriesListContainer;
+    private TextView mapStatusView;
+
+    @Nullable
+    private GoogleMap googleMap;
+    @Nullable
+    private Marker driverMarker;
+    @Nullable
+    private OrderTrackingManager.TrackedLocation lastKnownLocation;
+    private boolean hasCenteredMap;
+    private boolean isMapReady;
 
     private final OrderService orderService = new OrderService();
     private final UserService userService = new UserService();
@@ -59,6 +80,8 @@ public class DeliveriesActivity extends BottomNavActivity {
 
         initViews();
         orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
+        lastKnownLocation = orderTrackingManager.getLastKnownLocation();
+        initMap();
         showMessage(getString(R.string.deliveries_loading));
         showLoading(true);
         resolveStaffIdentity(false);
@@ -69,6 +92,12 @@ public class DeliveriesActivity extends BottomNavActivity {
         deliveriesMessage = findViewById(R.id.deliveriesMessage);
         deliveriesListContainer = findViewById(R.id.deliveriesListContainer);
         refreshView = findViewById(R.id.deliveriesRefresh);
+        mapStatusView = findViewById(R.id.deliveriesMapStatus);
+
+        if (mapStatusView != null) {
+            mapStatusView.setText(R.string.deliveries_map_loading);
+            mapStatusView.setVisibility(View.VISIBLE);
+        }
 
         if (refreshView != null) {
             refreshView.setOnClickListener(v -> {
@@ -86,6 +115,30 @@ public class DeliveriesActivity extends BottomNavActivity {
                     resolveStaffIdentity(true);
                 }
             });
+        }
+    }
+
+    private void initMap() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.deliveriesMapFragment);
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();
+            try {
+                fragmentManager.beginTransaction()
+                        .replace(R.id.deliveriesMapFragment, mapFragment)
+                        .commitNow();
+            } catch (IllegalStateException exception) {
+                fragmentManager.beginTransaction()
+                        .replace(R.id.deliveriesMapFragment, mapFragment)
+                        .commitAllowingStateLoss();
+                fragmentManager.executePendingTransactions();
+            }
+        }
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        } else if (mapStatusView != null) {
+            mapStatusView.setText(R.string.deliveries_map_unavailable);
+            mapStatusView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -198,6 +251,141 @@ public class DeliveriesActivity extends BottomNavActivity {
         });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (orderTrackingManager == null) {
+            orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
+        }
+        orderTrackingManager.addLocationUpdateListener(this);
+        if (lastKnownLocation == null) {
+            lastKnownLocation = orderTrackingManager.getLastKnownLocation();
+        }
+        orderTrackingManager.ensureLocationTracking();
+        updateMapUiState();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateMapUiState();
+    }
+
+    @Override
+    protected void onStop() {
+        if (orderTrackingManager != null) {
+            orderTrackingManager.removeLocationUpdateListener(this);
+        }
+        super.onStop();
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+        isMapReady = true;
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setCompassEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        updateMapUiState();
+    }
+
+    @Override
+    public void onLocationUpdated(@NonNull OrderTrackingManager.TrackedLocation location) {
+        lastKnownLocation = location;
+        runOnUiThread(this::updateMapUiState);
+    }
+
+    private void updateMapUiState() {
+        if (mapStatusView == null) {
+            return;
+        }
+        if (!isMapReady || googleMap == null) {
+            mapStatusView.setText(R.string.deliveries_map_loading);
+            mapStatusView.setVisibility(View.VISIBLE);
+            return;
+        }
+        if (orderTrackingManager == null) {
+            mapStatusView.setText(R.string.deliveries_map_unavailable);
+            mapStatusView.setVisibility(View.VISIBLE);
+            clearDriverMarker();
+            setMyLocationLayerEnabled(false);
+            return;
+        }
+        boolean hasPermission = orderTrackingManager.canAccessLocation();
+        if (!hasPermission) {
+            setMyLocationLayerEnabled(false);
+            clearDriverMarker();
+            hasCenteredMap = false;
+            mapStatusView.setText(R.string.deliveries_map_permission_required);
+            mapStatusView.setVisibility(View.VISIBLE);
+            return;
+        }
+        setMyLocationLayerEnabled(true);
+        OrderTrackingManager.TrackedLocation location = lastKnownLocation;
+        if (location == null) {
+            location = orderTrackingManager.getLastKnownLocation();
+            lastKnownLocation = location;
+        }
+        if (location == null) {
+            clearDriverMarker();
+            hasCenteredMap = false;
+            mapStatusView.setText(R.string.deliveries_map_waiting_location);
+            mapStatusView.setVisibility(View.VISIBLE);
+            return;
+        }
+        updateDriverMarker(location);
+        mapStatusView.setText(formatLastUpdated(location.getTimestampMillis()));
+        mapStatusView.setVisibility(View.VISIBLE);
+    }
+
+    private void updateDriverMarker(@NonNull OrderTrackingManager.TrackedLocation location) {
+        if (googleMap == null) {
+            return;
+        }
+        LatLng position = new LatLng(location.getLatitude(), location.getLongitude());
+        if (driverMarker == null) {
+            driverMarker = googleMap.addMarker(new MarkerOptions()
+                    .position(position)
+                    .title(getString(R.string.deliveries_map_driver_marker_title)));
+        } else {
+            driverMarker.setPosition(position);
+        }
+        if (!hasCenteredMap) {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, MAP_DEFAULT_ZOOM));
+            hasCenteredMap = true;
+        }
+    }
+
+    private void clearDriverMarker() {
+        if (driverMarker != null) {
+            driverMarker.remove();
+            driverMarker = null;
+        }
+    }
+
+    private void setMyLocationLayerEnabled(boolean enabled) {
+        if (googleMap == null) {
+            return;
+        }
+        try {
+            googleMap.setMyLocationEnabled(enabled);
+        } catch (SecurityException exception) {
+            if (enabled) {
+                googleMap.setMyLocationEnabled(false);
+            }
+        }
+    }
+
+    @NonNull
+    private String formatLastUpdated(long timestampMillis) {
+        if (timestampMillis <= 0L) {
+            return getString(R.string.deliveries_map_waiting_location);
+        }
+        DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
+        return getString(R.string.deliveries_map_last_updated, timeFormat.format(new Date(timestampMillis)));
+    }
+
     private void renderOrders(@NonNull List<OrderInfo> orders) {
         LayoutInflater inflater = LayoutInflater.from(this);
         deliveriesListContainer.removeAllViews();
@@ -266,6 +454,7 @@ public class DeliveriesActivity extends BottomNavActivity {
             pendingPermissionOrder = order;
             requestLocationPermissions();
             showToast(getString(R.string.deliveries_tracking_permission_request, order.getOrderId()));
+            updateMapUiState();
             return;
         }
 
@@ -274,6 +463,7 @@ public class DeliveriesActivity extends BottomNavActivity {
         } else {
             showToast(getString(R.string.deliveries_tracking_unavailable, order.getOrderId()));
         }
+        updateMapUiState();
     }
 
     private void requestLocationPermissions() {
@@ -316,6 +506,7 @@ public class DeliveriesActivity extends BottomNavActivity {
                     showToast(getString(R.string.deliveries_tracking_permission_granted_unavailable));
                 }
             }
+            updateMapUiState();
             return;
         }
 
@@ -325,6 +516,7 @@ public class DeliveriesActivity extends BottomNavActivity {
         } else {
             showToast(getString(R.string.deliveries_tracking_permission_denied_generic));
         }
+        updateMapUiState();
     }
 
     @NonNull
