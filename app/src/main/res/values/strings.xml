@@ -44,4 +44,22 @@
     <string name="status_shift_duration_hours_minutes">%1$d hr%2$s %3$d min%4$s</string>
     <string name="status_shift_duration_hours_only">%1$d hr%2$s</string>
     <string name="status_shift_duration_minutes_only">%1$d min%2$s</string>
+    <string name="deliveries_toolbar_title">Deliveries</string>
+    <string name="deliveries_refresh">Refresh</string>
+    <string name="deliveries_loading">Loading deliveries…</string>
+    <string name="deliveries_loading_in_progress">Still loading deliveries…</string>
+    <string name="deliveries_resolving_user_id">Looking up your staff profile…</string>
+    <string name="deliveries_resolving_user_id_toast">Still looking up your staff profile…</string>
+    <string name="deliveries_missing_user">Sign in to view your deliveries.</string>
+    <string name="deliveries_error">Unable to load deliveries right now.</string>
+    <string name="deliveries_empty">No deliveries need attention.</string>
+    <string name="deliveries_order_number">Order #%1$d</string>
+    <string name="deliveries_order_status">Status: %1$s</string>
+    <string name="deliveries_order_status_unknown">Status unavailable</string>
+    <string name="deliveries_order_total">Total: %1$s</string>
+    <string name="deliveries_order_meta_fallback">Details unavailable</string>
+    <plurals name="deliveries_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
 </resources>

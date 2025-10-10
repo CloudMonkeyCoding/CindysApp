@@ -107,3 +107,23 @@ On success the loader looks for a `shift` object (or the first element in a
 `Scheduled_Start`, `Scheduled_End`, `Actual_Start`, and `Status`. When the
 `start_shift` action succeeds the script should respond with the updated shift
 record or the app will issue a follow-up fetch to refresh the UI.
+
+## Configuring delivery order lookups
+
+The **Deliveries** tab now lists every order assigned to the signed-in driver
+that has not been marked complete. Two additional Gradle properties control
+which PHP script is queried and which action parameter is appended to the
+request:
+
+| Property | Default | Purpose |
+| --- | --- | --- |
+| `ORDER_LIST_PATH` | `PHP/order_api.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the driver's orders. The client sends a `GET` request with `action=<ORDER_LIST_ACTION>` and `user_id=<staff id>`. Point this at the Cindy's Bakeshop `order_api.php` helper or a compatible endpoint that returns a JSON array of orders. |
+| `ORDER_LIST_ACTION` | `list` | Action query parameter appended when requesting orders for the driver. |
+
+Each order response should include fields such as `Order_ID`, `Status`,
+`Item_Count`, `Item_Summary`, `Total_Amount`, `Order_Date`, `Fulfillment_Type`,
+and optionally `Source`. The Android client filters out records whose status is
+`Delivered`, `Completed`, or `Cancelled` so the screen only surfaces unfinished
+work. If your back-end uses different status text, adjust the PHP response so
+active orders return a distinct status string and the mobile app can continue
+to display the correct queue.

@@ -35,6 +35,14 @@ val defaultStaffUserId = (project.findProperty("DEFAULT_STAFF_USER_ID") as? Stri
     ?.takeIf { it > 0 }
     ?: 0
 
+val orderListPath = (project.findProperty("ORDER_LIST_PATH") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "PHP/order_api.php"
+
+val orderListAction = (project.findProperty("ORDER_LIST_ACTION") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "list"
+
 fun String.toBuildConfigString(): String = this
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
@@ -59,6 +67,8 @@ android {
         buildConfigField("String", "USER_PROFILE_PATH", "\"${userProfilePath.toBuildConfigString()}\"")
         buildConfigField("String", "USER_PROFILE_ACTION", "\"${userProfileAction.toBuildConfigString()}\"")
         buildConfigField("int", "DEFAULT_STAFF_USER_ID", defaultStaffUserId.toString())
+        buildConfigField("String", "ORDER_LIST_PATH", "\"${orderListPath.toBuildConfigString()}\"")
+        buildConfigField("String", "ORDER_LIST_ACTION", "\"${orderListAction.toBuildConfigString()}\"")
     }
 
     buildTypes {

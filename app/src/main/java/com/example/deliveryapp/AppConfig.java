@@ -54,6 +54,16 @@ public final class AppConfig {
             0
     );
 
+    public static final String ORDER_LIST_PATH = resolveString(
+            "ORDER_LIST_PATH",
+            "PHP/order_api.php"
+    );
+
+    public static final String ORDER_LIST_ACTION = resolveString(
+            "ORDER_LIST_ACTION",
+            "list"
+    );
+
     private AppConfig() {
         // Utility class
     }
