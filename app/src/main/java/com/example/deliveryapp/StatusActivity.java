@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.example.deliveryapp.BuildConfig;
+import com.example.deliveryapp.AppConfig;
 import com.example.deliveryapp.network.ServerConnectionManager;
 import com.example.deliveryapp.network.ShiftInfo;
 import com.example.deliveryapp.network.ShiftService;
@@ -123,7 +123,7 @@ public class StatusActivity extends BottomNavActivity {
                     if (isConnected) {
                         updateStatusUi(
                                 StatusState.CONNECTED,
-                                getString(R.string.status_connected, BuildConfig.API_BASE_URL)
+                                getString(R.string.status_connected, AppConfig.API_BASE_URL)
                         );
                     } else {
                         String errorText = getString(R.string.status_connection_failed);
@@ -185,8 +185,8 @@ public class StatusActivity extends BottomNavActivity {
             return;
         }
 
-        if (BuildConfig.DEFAULT_STAFF_USER_ID > 0) {
-            resolvedUserId = BuildConfig.DEFAULT_STAFF_USER_ID;
+        if (AppConfig.DEFAULT_STAFF_USER_ID > 0) {
+            resolvedUserId = AppConfig.DEFAULT_STAFF_USER_ID;
             loadShift(userRequestedRefresh);
             return;
         }

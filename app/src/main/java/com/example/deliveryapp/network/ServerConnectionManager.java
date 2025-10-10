@@ -2,47 +2,38 @@ package com.example.deliveryapp.network;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.deliveryapp.BuildConfig;
+import com.example.deliveryapp.AppConfig;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 public class ServerConnectionManager {
 
+    private static final String TAG = "ServerConnection";
+    private static final int CONNECT_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(10);
+    private static final int READ_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(10);
+
     private static volatile ServerConnectionManager instance;
 
-    private final OkHttpClient okHttpClient;
     private final Handler mainThreadHandler;
+    private final ExecutorService networkExecutor;
     @Nullable
-    private final HttpUrl baseUrl;
+    private final URL baseUrl;
 
     private ServerConnectionManager() {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(BuildConfig.DEBUG
-                ? HttpLoggingInterceptor.Level.BODY
-                : HttpLoggingInterceptor.Level.BASIC);
-
-        okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                .callTimeout(15, TimeUnit.SECONDS)
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(10, TimeUnit.SECONDS)
-                .build();
         mainThreadHandler = new Handler(Looper.getMainLooper());
-        baseUrl = HttpUrl.parse(BuildConfig.API_BASE_URL);
+        networkExecutor = Executors.newCachedThreadPool();
+        baseUrl = parseUrl(AppConfig.API_BASE_URL);
     }
 
     public static ServerConnectionManager getInstance() {
@@ -57,79 +48,78 @@ public class ServerConnectionManager {
     }
 
     public void checkConnection(@Nullable String healthPath, @NonNull ConnectionCallback callback) {
-        if (baseUrl == null) {
+        URL targetUrl = buildUrl(healthPath);
+        if (targetUrl == null) {
             postResult(callback, false, "Invalid base URL");
             return;
         }
 
-        HttpUrl requestUrl = resolveRelativeUrl(baseUrl, healthPath);
-        if (requestUrl == null) {
-            postResult(callback, false, "Unable to build request URL");
-            return;
-        }
+        networkExecutor.execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) targetUrl.openConnection();
+                connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+                connection.setReadTimeout(READ_TIMEOUT_MS);
+                connection.setRequestMethod("GET");
+                connection.connect();
 
-        Request request = new Request.Builder()
-                .url(requestUrl)
-                .get()
-                .build();
-
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                int statusCode = connection.getResponseCode();
+                if (statusCode >= 200 && statusCode < 300) {
+                    postResult(callback, true, null);
+                } else {
+                    postResult(callback, false, "HTTP " + statusCode);
+                }
+            } catch (IOException e) {
                 postResult(callback, false, e.getMessage());
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
-                try (response) {
-                    if (response.isSuccessful()) {
-                        postResult(callback, true, null);
-                    } else {
-                        postResult(callback, false, "HTTP " + response.code());
-                    }
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
                 }
             }
         });
     }
 
     @Nullable
-    public HttpUrl getBaseUrl() {
+    public URL getBaseUrl() {
         return baseUrl;
     }
 
-    @NonNull
-    public OkHttpClient getHttpClient() {
-        return okHttpClient;
-    }
-
     @Nullable
-    public HttpUrl buildUrl(@Nullable String relativePath) {
+    public URL buildUrl(@Nullable String relativePath) {
         if (baseUrl == null) {
             return null;
         }
-        return resolveRelativeUrl(baseUrl, relativePath);
+        if (relativePath == null || relativePath.trim().isEmpty()) {
+            return baseUrl;
+        }
+        try {
+            return new URL(baseUrl, relativePath.trim());
+        } catch (MalformedURLException e) {
+            Log.w(TAG, "Unable to resolve URL: " + relativePath, e);
+            return null;
+        }
     }
 
-    private HttpUrl resolveRelativeUrl(@NonNull HttpUrl baseUrl, @Nullable String path) {
-        if (path == null) {
-            return baseUrl;
-        }
+    @NonNull
+    public ExecutorService getNetworkExecutor() {
+        return networkExecutor;
+    }
 
-        String trimmed = path.trim();
-        if (trimmed.isEmpty()) {
-            return baseUrl;
-        }
+    @NonNull
+    public Handler getMainThreadHandler() {
+        return mainThreadHandler;
+    }
 
-        HttpUrl resolved = baseUrl.resolve(trimmed);
-        if (resolved != null) {
-            return resolved;
+    private URL parseUrl(@Nullable String urlValue) {
+        if (urlValue == null || urlValue.trim().isEmpty()) {
+            return null;
         }
-
-        if (!trimmed.startsWith("/")) {
-            trimmed = "/" + trimmed;
+        try {
+            return new URL(urlValue.trim());
+        } catch (MalformedURLException e) {
+            Log.w(TAG, "Invalid base URL: " + urlValue, e);
+            return null;
         }
-
-        return baseUrl.resolve(trimmed);
     }
 
     private void postResult(@NonNull ConnectionCallback callback, boolean isConnected, @Nullable String errorMessage) {

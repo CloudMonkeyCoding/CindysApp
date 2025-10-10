@@ -1,28 +1,27 @@
 package com.example.deliveryapp.network;
 
 import android.os.Handler;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.deliveryapp.BuildConfig;
+import com.example.deliveryapp.AppConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Locale;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import java.util.Map;
 
 /**
  * Handles loading and updating shift information via the Cindy's Bakeshop PHP endpoints.
@@ -41,14 +40,12 @@ public class ShiftService {
         void onError(@NonNull String errorMessage);
     }
 
-    private final OkHttpClient okHttpClient;
     private final Handler mainHandler;
     private final ServerConnectionManager connectionManager;
 
     public ShiftService() {
         connectionManager = ServerConnectionManager.getInstance();
-        okHttpClient = connectionManager.getHttpClient();
-        mainHandler = new Handler(Looper.getMainLooper());
+        mainHandler = connectionManager.getMainThreadHandler();
     }
 
     public void fetchUpcomingShift(int userId, @NonNull ShiftFetchCallback callback) {
@@ -57,27 +54,21 @@ public class ShiftService {
             return;
         }
 
-        HttpUrl baseUrl = connectionManager.buildUrl(BuildConfig.SHIFT_SCHEDULE_PATH);
-        if (baseUrl == null) {
+        URL endpoint = connectionManager.buildUrl(AppConfig.SHIFT_SCHEDULE_PATH);
+        if (endpoint == null) {
             callback.onError("Shift endpoint URL could not be resolved.");
             return;
         }
 
-        String fetchAction = BuildConfig.SHIFT_FETCH_ACTION != null && !BuildConfig.SHIFT_FETCH_ACTION.trim().isEmpty()
-                ? BuildConfig.SHIFT_FETCH_ACTION
+        String fetchAction = AppConfig.SHIFT_FETCH_ACTION != null && !AppConfig.SHIFT_FETCH_ACTION.trim().isEmpty()
+                ? AppConfig.SHIFT_FETCH_ACTION
                 : "get_shift_schedules";
 
-        RequestBody requestBody = new FormBody.Builder()
-                .add("action", fetchAction)
-                .add("user_id", String.valueOf(userId))
-                .build();
+        Map<String, String> formFields = new LinkedHashMap<>();
+        formFields.put("action", fetchAction);
+        formFields.put("user_id", String.valueOf(userId));
 
-        Request request = new Request.Builder()
-                .url(baseUrl)
-                .post(requestBody)
-                .build();
-
-        executeRequest(request, new JsonResponseHandler() {
+        executeRequest(endpoint, formFields, new JsonResponseHandler() {
             @Override
             public void onSuccess(@NonNull JSONObject body) {
                 boolean success = isSuccess(body);
@@ -104,23 +95,17 @@ public class ShiftService {
             return;
         }
 
-        HttpUrl endpointUrl = connectionManager.buildUrl(BuildConfig.SHIFT_ACTION_PATH);
+        URL endpointUrl = connectionManager.buildUrl(AppConfig.SHIFT_ACTION_PATH);
         if (endpointUrl == null) {
             callback.onError("Shift action endpoint URL could not be resolved.");
             return;
         }
 
-        RequestBody requestBody = new FormBody.Builder()
-                .add("action", BuildConfig.SHIFT_START_ACTION)
-                .add("shift_id", String.valueOf(shiftId))
-                .build();
+        Map<String, String> formFields = new LinkedHashMap<>();
+        formFields.put("action", AppConfig.SHIFT_START_ACTION);
+        formFields.put("shift_id", String.valueOf(shiftId));
 
-        Request request = new Request.Builder()
-                .url(endpointUrl)
-                .post(requestBody)
-                .build();
-
-        executeRequest(request, new JsonResponseHandler() {
+        executeRequest(endpointUrl, formFields, new JsonResponseHandler() {
             @Override
             public void onSuccess(@NonNull JSONObject body) {
                 boolean success = isSuccess(body);
@@ -141,36 +126,52 @@ public class ShiftService {
         });
     }
 
-    private void executeRequest(@NonNull Request request, @NonNull JsonResponseHandler handler) {
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+    private void executeRequest(@NonNull URL url, @NonNull Map<String, String> formFields, @NonNull JsonResponseHandler handler) {
+        connectionManager.getNetworkExecutor().execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(10_000);
+                connection.setReadTimeout(10_000);
+                connection.setRequestMethod("POST");
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+                String payload = buildFormPayload(formFields);
+                byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8);
+                connection.setFixedLengthStreamingMode(payloadBytes.length);
+
+                try (OutputStream outputStream = connection.getOutputStream()) {
+                    outputStream.write(payloadBytes);
+                    outputStream.flush();
+                }
+
+                int statusCode = connection.getResponseCode();
+                String bodyString = readResponseBody(connection, statusCode);
+
+                if (statusCode < 200 || statusCode >= 300) {
+                    final String errorMessage = buildHttpErrorMessage(statusCode, bodyString);
+                    postToMain(() -> handler.onError(errorMessage));
+                    return;
+                }
+
+                JSONObject body = normalizeJsonPayload(bodyString);
+                if (body == null) {
+                    final String finalMessage = looksLikeHtml(bodyString)
+                            ? htmlFallbackMessage()
+                            : "Server returned an unexpected response.";
+                    postToMain(() -> handler.onError(finalMessage));
+                    return;
+                }
+
+                JSONObject finalBody = body;
+                postToMain(() -> handler.onSuccess(finalBody));
+            } catch (IOException e) {
                 postToMain(() -> handler.onError(e.getMessage() != null ? e.getMessage() : "Network request failed."));
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
-                try (Response res = response) {
-                    String bodyString = res.body() != null ? res.body().string() : "";
-                    if (!res.isSuccessful()) {
-                        final String errorMessage = buildHttpErrorMessage(res.code(), bodyString);
-                        postToMain(() -> handler.onError(errorMessage));
-                        return;
-                    }
-
-                    JSONObject body = normalizeJsonPayload(bodyString);
-                    if (body == null) {
-                        final String finalMessage = looksLikeHtml(bodyString)
-                                ? htmlFallbackMessage()
-                                : "Server returned an unexpected response.";
-                        postToMain(() -> handler.onError(finalMessage));
-                        return;
-                    }
-
-                    JSONObject finalBody = body;
-                    postToMain(() -> handler.onSuccess(finalBody));
-                } catch (IOException e) {
-                    postToMain(() -> handler.onError(e.getMessage() != null ? e.getMessage() : "Unable to read response."));
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
                 }
             }
         });
@@ -432,6 +433,41 @@ public class ShiftService {
 
     private String htmlFallbackMessage() {
         return "Shift service returned HTML instead of JSON. Verify the configured PHP endpoint returns JSON as described in the Cindy's Bakeshop shift_functions.php utilities.";
+    }
+
+    @NonNull
+    private String buildFormPayload(@NonNull Map<String, String> formFields) {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, String> entry : formFields.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append('&');
+            }
+            builder.append(encode(entry.getKey()));
+            builder.append('=');
+            builder.append(encode(entry.getValue()));
+        }
+        return builder.toString();
+    }
+
+    @NonNull
+    private String encode(@NonNull String value) {
+        return java.net.URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    @NonNull
+    private String readResponseBody(@NonNull HttpURLConnection connection, int statusCode) throws IOException {
+        InputStream stream = statusCode >= 400 ? connection.getErrorStream() : connection.getInputStream();
+        if (stream == null) {
+            return "";
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            return builder.toString();
+        }
     }
 
     private interface JsonResponseHandler {

@@ -1,24 +1,24 @@
 package com.example.deliveryapp.network;
 
+import android.net.Uri;
 import android.os.Handler;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.deliveryapp.BuildConfig;
+import com.example.deliveryapp.AppConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Resolves delivery user metadata from the Cindy's Bakeshop PHP APIs.
@@ -31,71 +31,83 @@ public class UserService {
         void onError(@NonNull String errorMessage);
     }
 
-    private final OkHttpClient okHttpClient;
     private final Handler mainHandler;
     private final ServerConnectionManager connectionManager;
 
     public UserService() {
         connectionManager = ServerConnectionManager.getInstance();
-        okHttpClient = connectionManager.getHttpClient();
-        mainHandler = new Handler(Looper.getMainLooper());
+        mainHandler = connectionManager.getMainThreadHandler();
     }
 
     public void fetchUserIdByEmail(@NonNull String email, @NonNull UserIdCallback callback) {
-        HttpUrl endpoint = connectionManager.buildUrl(BuildConfig.USER_PROFILE_PATH);
+        URL endpoint = connectionManager.buildUrl(AppConfig.USER_PROFILE_PATH);
         if (endpoint == null) {
             postError(callback, "User profile endpoint URL could not be resolved.");
             return;
         }
 
-        HttpUrl requestUrl = endpoint.newBuilder()
-                .addQueryParameter("action", BuildConfig.USER_PROFILE_ACTION)
-                .addQueryParameter("email", email)
-                .build();
+        URL requestUrl = buildProfileUrl(endpoint, email);
+        if (requestUrl == null) {
+            postError(callback, "Failed to build user profile request URL.");
+            return;
+        }
 
-        Request request = new Request.Builder()
-                .url(requestUrl)
-                .get()
-                .build();
+        connectionManager.getNetworkExecutor().execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) requestUrl.openConnection();
+                connection.setConnectTimeout(10_000);
+                connection.setReadTimeout(10_000);
+                connection.setRequestMethod("GET");
+                connection.connect();
 
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                int statusCode = connection.getResponseCode();
+                String bodyString = readResponseBody(connection, statusCode);
+                if (statusCode < 200 || statusCode >= 300) {
+                    String message = extractErrorMessage(bodyString);
+                    if (message == null) {
+                        message = "HTTP " + statusCode;
+                    }
+                    postError(callback, message);
+                    return;
+                }
+
+                JSONObject body = parseJson(bodyString);
+                if (body == null) {
+                    postError(callback, "Server returned an unexpected response.");
+                    return;
+                }
+
+                int userId = extractUserId(body);
+                if (userId > 0) {
+                    postSuccess(callback, userId);
+                    return;
+                }
+
+                String message = extractErrorFromBody(body);
+                postError(callback, message != null ? message : "User profile did not include an ID.");
+            } catch (IOException e) {
                 postError(callback, e.getMessage() != null ? e.getMessage() : "Unable to reach user service.");
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
-                try (Response res = response) {
-                    String bodyString = res.body() != null ? res.body().string() : "";
-                    if (!res.isSuccessful()) {
-                        String message = extractErrorMessage(bodyString);
-                        if (message == null) {
-                            message = "HTTP " + res.code();
-                        }
-                        postError(callback, message);
-                        return;
-                    }
-
-                    JSONObject body = parseJson(bodyString);
-                    if (body == null) {
-                        postError(callback, "Server returned an unexpected response.");
-                        return;
-                    }
-
-                    int userId = extractUserId(body);
-                    if (userId > 0) {
-                        postSuccess(callback, userId);
-                        return;
-                    }
-
-                    String message = extractErrorFromBody(body);
-                    postError(callback, message != null ? message : "User profile did not include an ID.");
-                } catch (IOException e) {
-                    postError(callback, e.getMessage() != null ? e.getMessage() : "Unable to read response.");
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
                 }
             }
         });
+    }
+
+    @Nullable
+    private URL buildProfileUrl(@NonNull URL endpoint, @NonNull String email) {
+        Uri uri = Uri.parse(endpoint.toString())
+                .buildUpon()
+                .appendQueryParameter("action", AppConfig.USER_PROFILE_ACTION)
+                .appendQueryParameter("email", email)
+                .build();
+        try {
+            return new URL(uri.toString());
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     private void postSuccess(@NonNull UserIdCallback callback, int userId) {
@@ -161,5 +173,20 @@ public class UserService {
         }
         return rawBody.isEmpty() ? null : rawBody;
     }
-}
 
+    @NonNull
+    private String readResponseBody(@NonNull HttpURLConnection connection, int statusCode) throws IOException {
+        InputStream stream = statusCode >= 400 ? connection.getErrorStream() : connection.getInputStream();
+        if (stream == null) {
+            return "";
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            return builder.toString();
+        }
+    }
+}
