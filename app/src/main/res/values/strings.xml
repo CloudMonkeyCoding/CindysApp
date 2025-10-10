@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Delivery app</string>
-    <string name="google_maps_key" translatable="false">YOUR_API_KEY_HERE</string>
     <string name="status_initial_message">Checking server...</string>
     <string name="status_checking_message">Checking server...</string>
     <string name="status_connected">Connected to %1$s</string>
@@ -75,6 +74,8 @@
     <string name="deliveries_map_waiting_location">Waiting for your current location…</string>
     <string name="deliveries_map_last_updated">Last location update: %1$s</string>
     <string name="deliveries_map_unavailable">Map unavailable.</string>
+    <string name="deliveries_map_missing_api_key">Add a Google Maps API key to view this map.</string>
+    <string name="deliveries_map_initialization_failed">Google Maps could not be initialized right now.</string>
     <string name="deliveries_map_driver_marker_title">Your location</string>
     <plurals name="deliveries_item_count">
         <item quantity="one">%d item</item>

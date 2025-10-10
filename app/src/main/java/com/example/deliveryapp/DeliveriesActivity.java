@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +25,7 @@ import com.example.deliveryapp.network.UserService;
 import com.example.deliveryapp.tracking.OrderTrackingManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -44,6 +46,9 @@ import java.util.Locale;
 
 public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyCallback, OrderTrackingManager.LocationUpdateListener {
 
+    private static final String TAG = "DeliveriesActivity";
+    private static boolean hasConfiguredMapsSdk;
+
     private static final int REQUEST_LOCATION_PERMISSIONS = 1001;
     private static final float MAP_DEFAULT_ZOOM = 15f;
 
@@ -61,6 +66,8 @@ public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyC
     private OrderTrackingManager.TrackedLocation lastKnownLocation;
     private boolean hasCenteredMap;
     private boolean isMapReady;
+    private boolean isMissingMapsApiKey;
+    private boolean mapInitializationFailed;
 
     private final OrderService orderService = new OrderService();
     private final UserService userService = new UserService();
@@ -119,6 +126,24 @@ public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyC
     }
 
     private void initMap() {
+        isMissingMapsApiKey = TextUtils.isEmpty(AppConfig.GOOGLE_MAPS_API_KEY);
+
+        if (isMissingMapsApiKey) {
+            if (mapStatusView != null) {
+                mapStatusView.setText(R.string.deliveries_map_missing_api_key);
+                mapStatusView.setVisibility(View.VISIBLE);
+            }
+            return;
+        }
+
+        if (!configureMapsSdkIfNeeded()) {
+            if (mapStatusView != null) {
+                mapStatusView.setText(R.string.deliveries_map_initialization_failed);
+                mapStatusView.setVisibility(View.VISIBLE);
+            }
+            return;
+        }
+
         FragmentManager fragmentManager = getSupportFragmentManager();
         SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.deliveriesMapFragment);
         if (mapFragment == null) {
@@ -300,6 +325,20 @@ public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyC
         if (mapStatusView == null) {
             return;
         }
+        if (isMissingMapsApiKey) {
+            mapStatusView.setText(R.string.deliveries_map_missing_api_key);
+            mapStatusView.setVisibility(View.VISIBLE);
+            clearDriverMarker();
+            setMyLocationLayerEnabled(false);
+            return;
+        }
+        if (mapInitializationFailed) {
+            mapStatusView.setText(R.string.deliveries_map_initialization_failed);
+            mapStatusView.setVisibility(View.VISIBLE);
+            clearDriverMarker();
+            setMyLocationLayerEnabled(false);
+            return;
+        }
         if (!isMapReady || googleMap == null) {
             mapStatusView.setText(R.string.deliveries_map_loading);
             mapStatusView.setVisibility(View.VISIBLE);
@@ -337,6 +376,28 @@ public class DeliveriesActivity extends BottomNavActivity implements OnMapReadyC
         updateDriverMarker(location);
         mapStatusView.setText(formatLastUpdated(location.getTimestampMillis()));
         mapStatusView.setVisibility(View.VISIBLE);
+    }
+
+    private boolean configureMapsSdkIfNeeded() {
+        if (hasConfiguredMapsSdk) {
+            mapInitializationFailed = false;
+            return true;
+        }
+
+        try {
+            String mapsApiKey = AppConfig.GOOGLE_MAPS_API_KEY;
+            if (!TextUtils.isEmpty(mapsApiKey)) {
+                MapsInitializer.setApiKey(mapsApiKey);
+            }
+            MapsInitializer.initialize(getApplicationContext(), MapsInitializer.Renderer.LATEST, renderer -> {});
+            hasConfiguredMapsSdk = true;
+            mapInitializationFailed = false;
+            return true;
+        } catch (Exception exception) {
+            mapInitializationFailed = true;
+            Log.e(TAG, "Failed to initialize Google Maps", exception);
+            return false;
+        }
     }
 
     private void updateDriverMarker(@NonNull OrderTrackingManager.TrackedLocation location) {
