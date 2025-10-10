@@ -189,6 +189,10 @@ public class ShiftService {
     }
 
     private boolean isSuccess(@NonNull JSONObject body) {
+        if (body.length() == 0) {
+            return true;
+        }
+
         if (body.has("success")) {
             Object successObj = body.opt("success");
             if (successObj instanceof Boolean) {
