@@ -3,8 +3,10 @@ package com.example.deliveryapp;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +33,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 public class StatusActivity extends BottomNavActivity {
@@ -51,6 +56,9 @@ public class StatusActivity extends BottomNavActivity {
     private TextView shiftRefreshView;
     private Button startShiftButton;
     private ProgressBar startShiftProgress;
+    private View shiftListSection;
+    private LinearLayout shiftListContainer;
+    private TextView shiftListEmptyView;
 
     private final ShiftService shiftService = new ShiftService();
     private final UserService userService = new UserService();
@@ -58,6 +66,7 @@ public class StatusActivity extends BottomNavActivity {
     private ShiftInfo currentShift;
     @Nullable
     private Integer resolvedUserId;
+    private final List<ShiftInfo> loadedShifts = new ArrayList<>();
     private boolean isShiftLoading;
     private boolean isStartRequestRunning;
     private boolean isResolvingUserId;
@@ -89,11 +98,14 @@ public class StatusActivity extends BottomNavActivity {
         shiftRefreshView = findViewById(R.id.shiftRefresh);
         startShiftButton = findViewById(R.id.startShiftButton);
         startShiftProgress = findViewById(R.id.startShiftProgress);
+        shiftListSection = findViewById(R.id.shiftListSection);
+        shiftListContainer = findViewById(R.id.shiftListContainer);
+        shiftListEmptyView = findViewById(R.id.shiftListEmpty);
 
         if (shiftRefreshView != null) {
             shiftRefreshView.setOnClickListener(v -> {
                 if (resolvedUserId != null) {
-                    loadShift(true);
+                    loadShifts(true);
                 } else {
                     resolveStaffIdentity(true);
                 }
@@ -136,7 +148,7 @@ public class StatusActivity extends BottomNavActivity {
         );
     }
 
-    private void loadShift(boolean userRequestedRefresh) {
+    private void loadShifts(boolean userRequestedRefresh) {
         if (resolvedUserId == null) {
             if (!isResolvingUserId) {
                 resolveStaffIdentity(userRequestedRefresh);
@@ -147,17 +159,20 @@ public class StatusActivity extends BottomNavActivity {
         }
 
         showShiftLoading(true);
-        shiftService.fetchUpcomingShift(resolvedUserId, new ShiftService.ShiftFetchCallback() {
+        shiftService.fetchShifts(resolvedUserId, new ShiftService.ShiftFetchCallback() {
             @Override
-            public void onSuccess(@Nullable ShiftInfo shiftInfo, @Nullable String serverMessage) {
+            public void onSuccess(@NonNull List<ShiftInfo> shifts, @Nullable String serverMessage) {
                 showShiftLoading(false);
-                if (shiftInfo == null) {
+                if (shifts.isEmpty()) {
                     String message = !TextUtils.isEmpty(serverMessage)
                             ? serverMessage
                             : getString(R.string.status_shift_no_shift_message);
                     showNoShift(message);
+                    populateShiftList(Collections.emptyList());
                 } else {
-                    bindShift(shiftInfo);
+                    ShiftInfo first = shifts.get(0);
+                    bindShift(first);
+                    populateShiftList(shifts);
                     if (!TextUtils.isEmpty(serverMessage) && userRequestedRefresh) {
                         showToast(serverMessage);
                     }
@@ -173,6 +188,7 @@ public class StatusActivity extends BottomNavActivity {
                 if (userRequestedRefresh) {
                     showToast(errorMessage);
                 }
+                populateShiftList(Collections.emptyList());
             }
         });
     }
@@ -187,7 +203,7 @@ public class StatusActivity extends BottomNavActivity {
 
         if (AppConfig.DEFAULT_STAFF_USER_ID > 0) {
             resolvedUserId = AppConfig.DEFAULT_STAFF_USER_ID;
-            loadShift(userRequestedRefresh);
+            loadShifts(userRequestedRefresh);
             return;
         }
 
@@ -215,7 +231,7 @@ public class StatusActivity extends BottomNavActivity {
             public void onSuccess(int userId) {
                 isResolvingUserId = false;
                 resolvedUserId = userId;
-                loadShift(userRequestedRefresh);
+                loadShifts(userRequestedRefresh);
             }
 
             @Override
@@ -243,6 +259,9 @@ public class StatusActivity extends BottomNavActivity {
             shiftEmptyView.setText(R.string.status_shift_resolving_user_id);
             shiftEmptyView.setVisibility(View.VISIBLE);
         }
+        if (shiftListSection != null) {
+            shiftListSection.setVisibility(View.GONE);
+        }
     }
 
     private void showShiftLoading(boolean show) {
@@ -257,11 +276,15 @@ public class StatusActivity extends BottomNavActivity {
             shiftRefreshView.setEnabled(!show);
             shiftRefreshView.setAlpha(show ? 0.5f : 1f);
         }
+        if (shiftListSection != null && shiftListSection.getVisibility() == View.VISIBLE) {
+            shiftListSection.setAlpha(show ? 0.6f : 1f);
+        }
         updateStartButtonState();
     }
 
     private void showNoShift(@Nullable String message) {
         currentShift = null;
+        loadedShifts.clear();
         if (shiftCard != null) {
             shiftCard.setVisibility(View.GONE);
         }
@@ -271,6 +294,15 @@ public class StatusActivity extends BottomNavActivity {
                     : getString(R.string.status_shift_no_shift_message);
             shiftEmptyView.setText(display);
             shiftEmptyView.setVisibility(View.VISIBLE);
+        }
+        if (shiftListSection != null) {
+            shiftListSection.setVisibility(View.GONE);
+        }
+        if (shiftListContainer != null) {
+            shiftListContainer.removeAllViews();
+        }
+        if (shiftListEmptyView != null) {
+            shiftListEmptyView.setVisibility(View.GONE);
         }
         updateStartButtonState();
     }
@@ -330,10 +362,95 @@ public class StatusActivity extends BottomNavActivity {
         updateStartButtonState();
     }
 
+    private void populateShiftList(@NonNull List<ShiftInfo> shifts) {
+        loadedShifts.clear();
+        loadedShifts.addAll(shifts);
+
+        if (shiftListContainer == null || shiftListSection == null || shiftListEmptyView == null) {
+            return;
+        }
+
+        shiftListContainer.removeAllViews();
+
+        if (shifts.isEmpty()) {
+            shiftListSection.setVisibility(View.GONE);
+            shiftListEmptyView.setVisibility(View.GONE);
+            return;
+        }
+
+        if (shifts.size() <= 1) {
+            shiftListSection.setVisibility(View.GONE);
+            shiftListEmptyView.setVisibility(View.GONE);
+            return;
+        }
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        Locale locale = getCurrentLocale();
+
+        for (int i = 0; i < shifts.size(); i++) {
+            ShiftInfo shift = shifts.get(i);
+            View itemView = inflater.inflate(R.layout.item_shift_summary, shiftListContainer, false);
+            bindShiftListItem(itemView, shift, i == 0, locale);
+            shiftListContainer.addView(itemView);
+        }
+
+        shiftListSection.setVisibility(View.VISIBLE);
+        shiftListSection.setAlpha(isShiftLoading ? 0.6f : 1f);
+        shiftListEmptyView.setVisibility(View.GONE);
+    }
+
+    private void bindShiftListItem(@NonNull View itemView, @NonNull ShiftInfo shift, boolean isPrimary, @NonNull Locale locale) {
+        TextView primaryLabel = itemView.findViewById(R.id.itemShiftPrimaryLabel);
+        if (primaryLabel != null) {
+            primaryLabel.setVisibility(isPrimary ? View.VISIBLE : View.GONE);
+        }
+
+        LocalDate shiftDate = parseDate(shift.getShiftDate(), locale);
+        LocalTime scheduledStart = parseTime(shift.getScheduledStart(), locale);
+        LocalTime scheduledEnd = parseTime(shift.getScheduledEnd(), locale);
+
+        TextView monthView = itemView.findViewById(R.id.itemShiftMonth);
+        TextView dayView = itemView.findViewById(R.id.itemShiftDay);
+        TextView weekdayView = itemView.findViewById(R.id.itemShiftWeekday);
+        if (monthView != null && dayView != null && weekdayView != null) {
+            if (shiftDate != null) {
+                monthView.setText(shiftDate.getMonth().getDisplayName(TextStyle.SHORT, locale));
+                dayView.setText(String.valueOf(shiftDate.getDayOfMonth()));
+                weekdayView.setText(shiftDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, locale));
+            } else {
+                monthView.setText(R.string.status_shift_month_placeholder);
+                dayView.setText(R.string.status_shift_day_placeholder);
+                weekdayView.setText(R.string.status_shift_weekday_placeholder);
+            }
+        }
+
+        TextView timeRangeView = itemView.findViewById(R.id.itemShiftTimeRange);
+        if (timeRangeView != null) {
+            timeRangeView.setText(
+                    formatTimeRange(scheduledStart, scheduledEnd, shift.getScheduledStart(), shift.getScheduledEnd(), locale)
+            );
+        }
+
+        TextView statusView = itemView.findViewById(R.id.itemShiftStatus);
+        if (statusView != null) {
+            statusView.setText(formatStatusLabel(shift.getStatus(), locale));
+        }
+
+        TextView locationView = itemView.findViewById(R.id.itemShiftLocation);
+        if (locationView != null) {
+            String location = !TextUtils.isEmpty(shift.getLocation())
+                    ? shift.getLocation()
+                    : (!TextUtils.isEmpty(shift.getNotes())
+                    ? shift.getNotes()
+                    : getString(R.string.status_shift_location_placeholder));
+            locationView.setText(location);
+        }
+    }
+
     private void onStartShiftClicked() {
         if (currentShift == null) {
             showToast(getString(R.string.status_shift_no_shift_message));
-            loadShift(true);
+            loadShifts(true);
             return;
         }
 
@@ -347,11 +464,7 @@ public class StatusActivity extends BottomNavActivity {
             @Override
             public void onSuccess(@Nullable ShiftInfo updatedShift, @Nullable String serverMessage) {
                 setStartShiftLoading(false);
-                if (updatedShift != null) {
-                    bindShift(updatedShift);
-                } else {
-                    loadShift(false);
-                }
+                loadShifts(false);
                 String message = !TextUtils.isEmpty(serverMessage)
                         ? serverMessage
                         : getString(R.string.status_shift_start_success);

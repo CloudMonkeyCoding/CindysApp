@@ -19,9 +19,13 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Handles loading and updating shift information via the Cindy's Bakeshop PHP endpoints.
@@ -29,7 +33,7 @@ import java.util.Map;
 public class ShiftService {
 
     public interface ShiftFetchCallback {
-        void onSuccess(@Nullable ShiftInfo shiftInfo, @Nullable String serverMessage);
+        void onSuccess(@NonNull List<ShiftInfo> shifts, @Nullable String serverMessage);
 
         void onError(@NonNull String errorMessage);
     }
@@ -48,7 +52,7 @@ public class ShiftService {
         mainHandler = connectionManager.getMainThreadHandler();
     }
 
-    public void fetchUpcomingShift(int userId, @NonNull ShiftFetchCallback callback) {
+    public void fetchShifts(int userId, @NonNull ShiftFetchCallback callback) {
         if (userId <= 0) {
             callback.onError("Missing or invalid staff user ID.");
             return;
@@ -78,8 +82,8 @@ public class ShiftService {
                     return;
                 }
 
-                ShiftInfo shift = extractShift(body);
-                callback.onSuccess(shift, message);
+                List<ShiftInfo> shifts = extractShifts(body);
+                callback.onSuccess(shifts, message);
             }
 
             @Override
@@ -260,6 +264,62 @@ public class ShiftService {
             }
         }
         return null;
+    }
+
+    @NonNull
+    private List<ShiftInfo> extractShifts(@NonNull JSONObject body) {
+        List<ShiftInfo> shifts = new ArrayList<>();
+        Set<Integer> seenIds = new LinkedHashSet<>();
+
+        JSONArray dataArray = null;
+        if (body.has("shifts") && !body.isNull("shifts")) {
+            dataArray = body.optJSONArray("shifts");
+        }
+
+        if (dataArray == null && body.has("data") && !body.isNull("data")) {
+            Object dataObject = body.opt("data");
+            if (dataObject instanceof JSONArray) {
+                dataArray = (JSONArray) dataObject;
+            } else if (dataObject instanceof JSONObject) {
+                ShiftInfo parsed = parseShift((JSONObject) dataObject);
+                addShiftIfNew(shifts, seenIds, parsed);
+            }
+        }
+
+        if (dataArray != null) {
+            for (int i = 0; i < dataArray.length(); i++) {
+                JSONObject item = dataArray.optJSONObject(i);
+                ShiftInfo parsed = parseShift(item);
+                addShiftIfNew(shifts, seenIds, parsed);
+            }
+        }
+
+        JSONObject shiftObject = body.optJSONObject("shift");
+        if (shiftObject != null) {
+            ShiftInfo parsed = parseShift(shiftObject);
+            addShiftIfNew(shifts, seenIds, parsed);
+        }
+
+        ShiftInfo direct = parseShift(body);
+        addShiftIfNew(shifts, seenIds, direct);
+
+        return shifts;
+    }
+
+    private void addShiftIfNew(@NonNull List<ShiftInfo> shifts, @NonNull Set<Integer> seenIds, @Nullable ShiftInfo shift) {
+        if (shift == null) {
+            return;
+        }
+
+        int id = shift.getId();
+        if (id > 0) {
+            if (seenIds.contains(id)) {
+                return;
+            }
+            seenIds.add(id);
+        }
+
+        shifts.add(shift);
     }
 
     @Nullable

@@ -252,6 +252,44 @@
                 android:textAlignment="center"
                 android:textColor="#777777"
                 android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/shiftListSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="24dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/shiftListHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="8dp"
+                    android:text="@string/status_shift_list_header"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/shiftListEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:text="@string/status_shift_list_empty"
+                    android:textColor="#777777"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/shiftListContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
