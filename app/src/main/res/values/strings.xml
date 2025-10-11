@@ -82,6 +82,7 @@
     <string name="map_order_summary_placeholder">Item summary unavailable</string>
     <string name="map_order_address">Deliver to: %1$s</string>
     <string name="map_order_address_missing">Delivery address unavailable</string>
+    <string name="map_order_address_fallback">Navigate to vendor location: %1$s</string>
     <string name="map_no_active_order">Select a delivery from the Deliveries tab to begin navigation.</string>
     <string name="map_location_header">Driver location</string>
     <string name="map_location_permission_missing">Enable location permissions to keep tracking your position.</string>

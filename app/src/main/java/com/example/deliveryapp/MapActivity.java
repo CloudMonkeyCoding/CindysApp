@@ -161,14 +161,7 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
             orderSummaryView.setText(summary);
         }
 
-        if (orderAddressView != null) {
-            String address = activeOrder.getAddress();
-            if (TextUtils.isEmpty(address)) {
-                orderAddressView.setText(R.string.map_order_address_missing);
-            } else {
-                orderAddressView.setText(getString(R.string.map_order_address, address));
-            }
-        }
+        bindOrderAddress();
 
         Log.d(TAG, "Active order refreshed. id=" + activeOrder.getOrderId() + ", hasAddress="
                 + !TextUtils.isEmpty(activeOrder.getAddress()));
@@ -351,6 +344,27 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
                 + ", hasFallback=" + hasFallback + ", enabled=" + enabled);
     }
 
+    private void bindOrderAddress() {
+        if (orderAddressView == null || activeOrder == null) {
+            return;
+        }
+
+        String address = activeOrder.getAddress();
+        if (!TextUtils.isEmpty(address)) {
+            orderAddressView.setText(getString(R.string.map_order_address, address));
+            Log.d(TAG, "Displaying active order address: " + address);
+            return;
+        }
+
+        if (!TextUtils.isEmpty(fallbackNavigationAddress)) {
+            orderAddressView.setText(getString(R.string.map_order_address_fallback, fallbackNavigationAddress));
+            Log.d(TAG, "Displaying fallback address for active order: " + fallbackNavigationAddress);
+        } else {
+            orderAddressView.setText(R.string.map_order_address_missing);
+            Log.d(TAG, "Active order missing address and no fallback available.");
+        }
+    }
+
     private void applyFallbackNavigationAddress(@Nullable String address) {
         if (address != null) {
             address = address.trim();
@@ -359,6 +373,10 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         fallbackNavigationAddress = sanitized;
         Log.d(TAG, "Applying fallback destination: " + sanitized);
         updateNavigationButtonState();
+        if (activeOrder != null && TextUtils.isEmpty(activeOrder.getAddress())) {
+            Log.d(TAG, "Updating active order view with fallback destination.");
+            bindOrderAddress();
+        }
         if (activeOrder == null) {
             updateEmptyStateMessage();
         }
