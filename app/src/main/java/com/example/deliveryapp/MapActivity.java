@@ -351,7 +351,10 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
 
         Integer userId = SessionManager.getUserId(getApplicationContext());
         String email = SessionManager.getEmail(getApplicationContext());
-        if ((userId == null || userId <= 0) && TextUtils.isEmpty(email)) {
+        if (!TextUtils.isEmpty(email)) {
+            email = email.trim();
+        }
+        if (TextUtils.isEmpty(email)) {
             return;
         }
 

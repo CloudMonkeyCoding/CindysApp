@@ -132,10 +132,11 @@ public class UserService {
         Uri.Builder builder = Uri.parse(endpoint.toString())
                 .buildUpon()
                 .appendQueryParameter("action", AppConfig.USER_PROFILE_ACTION);
+        if (!TextUtils.isEmpty(email)) {
+            builder.appendQueryParameter("email", email.trim());
+        }
         if (userId != null && userId > 0) {
             builder.appendQueryParameter("user_id", String.valueOf(userId));
-        } else if (!TextUtils.isEmpty(email)) {
-            builder.appendQueryParameter("email", email);
         }
         Uri uri = builder.build();
         try {
