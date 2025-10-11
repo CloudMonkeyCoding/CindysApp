@@ -94,7 +94,7 @@
     <string name="map_open_in_maps_button">Open in Maps</string>
     <string name="map_navigation_missing_address">No delivery address is available for this order.</string>
     <string name="map_navigation_app_missing">No maps app is installed to handle navigation.</string>
-    <string name="map_no_active_order_vendor" formatted="false"><![CDATA[No active delivery selected. Tap Open in Maps to navigate to Cindy's store.]]></string>
+    <string name="map_no_active_order_vendor">No active delivery selected. Tap Open in Maps to navigate to Cindy\'s store.</string>
     <string name="map_navigation_missing_destination">No destination is available to open in Maps.</string>
-    <string name="map_vendor_fallback_address" formatted="false"><![CDATA[Cindy's Bakeshop Hagonoy Bulacan]]></string>
+    <string name="map_vendor_fallback_address">Cindy\'s Bakeshop Hagonoy Bulacan</string>
 </resources>
