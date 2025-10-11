@@ -20,8 +20,6 @@ import com.example.deliveryapp.network.ServerConnectionManager;
 import com.example.deliveryapp.network.ShiftInfo;
 import com.example.deliveryapp.network.ShiftService;
 import com.example.deliveryapp.network.UserService;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -201,14 +199,21 @@ public class StatusActivity extends BottomNavActivity {
             return;
         }
 
+        Integer sessionUserId = SessionManager.getUserId(this);
+        if (sessionUserId != null) {
+            resolvedUserId = sessionUserId;
+            loadShifts(userRequestedRefresh);
+            return;
+        }
+
         if (AppConfig.DEFAULT_STAFF_USER_ID > 0) {
             resolvedUserId = AppConfig.DEFAULT_STAFF_USER_ID;
             loadShifts(userRequestedRefresh);
             return;
         }
 
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null || TextUtils.isEmpty(firebaseUser.getEmail())) {
+        String email = SessionManager.getEmail(this);
+        if (TextUtils.isEmpty(email)) {
             resolvedUserId = null;
             showShiftLoading(false);
             showNoShift(getString(R.string.status_shift_missing_user_id));
@@ -225,12 +230,13 @@ public class StatusActivity extends BottomNavActivity {
             showShiftLoading(true);
         }
 
-        String email = firebaseUser.getEmail();
-        userService.fetchUserIdByEmail(email, new UserService.UserIdCallback() {
+        final String lookupEmail = email;
+        userService.fetchUserIdByEmail(lookupEmail, new UserService.UserIdCallback() {
             @Override
             public void onSuccess(int userId) {
                 isResolvingUserId = false;
                 resolvedUserId = userId;
+                SessionManager.storeSession(getApplicationContext(), lookupEmail, userId);
                 loadShifts(userRequestedRefresh);
             }
 

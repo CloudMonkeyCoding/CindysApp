@@ -25,8 +25,6 @@ import com.example.deliveryapp.network.OrderInfo;
 import com.example.deliveryapp.network.OrderService;
 import com.example.deliveryapp.network.UserService;
 import com.example.deliveryapp.tracking.OrderTrackingManager;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -106,14 +104,21 @@ public class DeliveriesActivity extends BottomNavActivity {
             return;
         }
 
+        Integer sessionUserId = SessionManager.getUserId(this);
+        if (sessionUserId != null) {
+            resolvedUserId = sessionUserId;
+            loadOrders(userRequestedRefresh);
+            return;
+        }
+
         if (AppConfig.DEFAULT_STAFF_USER_ID > 0) {
             resolvedUserId = AppConfig.DEFAULT_STAFF_USER_ID;
             loadOrders(userRequestedRefresh);
             return;
         }
 
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (firebaseUser == null || TextUtils.isEmpty(firebaseUser.getEmail())) {
+        String email = SessionManager.getEmail(this);
+        if (TextUtils.isEmpty(email)) {
             showLoading(false);
             showMessage(getString(R.string.deliveries_missing_user));
             if (userRequestedRefresh) {
@@ -126,12 +131,13 @@ public class DeliveriesActivity extends BottomNavActivity {
         showLoading(true);
         showMessage(getString(R.string.deliveries_resolving_user_id));
 
-        String email = firebaseUser.getEmail();
-        userService.fetchUserIdByEmail(email, new UserService.UserIdCallback() {
+        final String lookupEmail = email;
+        userService.fetchUserIdByEmail(lookupEmail, new UserService.UserIdCallback() {
             @Override
             public void onSuccess(int userId) {
                 isResolvingUserId = false;
                 resolvedUserId = userId;
+                SessionManager.storeSession(getApplicationContext(), lookupEmail, userId);
                 loadOrders(userRequestedRefresh);
             }
 
