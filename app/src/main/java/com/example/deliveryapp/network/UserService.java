@@ -3,6 +3,7 @@ package com.example.deliveryapp.network;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +27,8 @@ import java.nio.charset.StandardCharsets;
  * Resolves delivery user metadata from the Cindy's Bakeshop PHP APIs.
  */
 public class UserService {
+
+    private static final String TAG = "UserService";
 
     public interface UserIdCallback {
         void onSuccess(int userId);
@@ -67,22 +70,27 @@ public class UserService {
 
     public void fetchUserProfile(@Nullable Integer userId, @Nullable String email, @NonNull UserProfileCallback callback) {
         if ((userId == null || userId <= 0) && TextUtils.isEmpty(email)) {
+            Log.w(TAG, "Cannot fetch profile; missing both userId and email.");
             postError(callback, "User lookup requires a user ID or email address.");
             return;
         }
 
         URL endpoint = connectionManager.buildUrl(AppConfig.USER_PROFILE_PATH);
         if (endpoint == null) {
+            Log.e(TAG, "User profile endpoint URL could not be resolved from base configuration.");
             postError(callback, "User profile endpoint URL could not be resolved.");
             return;
         }
 
         URL requestUrl = buildProfileUrl(endpoint, userId, email);
         if (requestUrl == null) {
+            Log.e(TAG, "Failed to build user profile request URL. endpoint=" + endpoint + ", userId=" + userId
+                    + ", email=" + email);
             postError(callback, "Failed to build user profile request URL.");
             return;
         }
 
+        Log.d(TAG, "Requesting user profile. url=" + requestUrl + ", userId=" + userId + ", email=" + email);
         connectionManager.getNetworkExecutor().execute(() -> {
             HttpURLConnection connection = null;
             try {
@@ -94,30 +102,37 @@ public class UserService {
 
                 int statusCode = connection.getResponseCode();
                 String bodyString = readResponseBody(connection, statusCode);
+                Log.d(TAG, "User profile response received. status=" + statusCode + ", bodyLength=" + bodyString.length());
                 if (statusCode < 200 || statusCode >= 300) {
                     String message = extractErrorMessage(bodyString);
                     if (message == null) {
                         message = "HTTP " + statusCode;
                     }
+                    Log.w(TAG, "User profile request failed. status=" + statusCode + ", message=" + message);
                     postError(callback, message);
                     return;
                 }
 
                 JSONObject body = parseJson(bodyString);
                 if (body == null) {
+                    Log.e(TAG, "Server returned a non-JSON response when fetching user profile.");
                     postError(callback, "Server returned an unexpected response.");
                     return;
                 }
 
                 UserProfile profile = extractProfile(body, userId, email);
                 if (profile != null) {
+                    Log.d(TAG, "Parsed user profile. id=" + profile.getUserId() + ", email=" + profile.getEmail()
+                            + ", hasAddress=" + !TextUtils.isEmpty(profile.getAddress()));
                     postSuccess(callback, profile);
                     return;
                 }
 
                 String message = extractErrorFromBody(body);
+                Log.w(TAG, "User profile payload missing expected fields. message=" + message);
                 postError(callback, message != null ? message : "User profile did not include any details.");
             } catch (IOException e) {
+                Log.e(TAG, "Network error while fetching user profile: " + e.getMessage(), e);
                 postError(callback, e.getMessage() != null ? e.getMessage() : "Unable to reach user service.");
             } finally {
                 if (connection != null) {
