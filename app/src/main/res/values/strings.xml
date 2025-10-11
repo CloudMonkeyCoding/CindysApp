@@ -89,12 +89,12 @@
     <string name="map_location_permission_denied">Location permissions denied. Tracking will remain paused.</string>
     <string name="map_location_unavailable">Waiting for your current location…</string>
     <string name="map_location_provider_unknown">Unknown provider</string>
-    <string name="map_location_coordinates">Lat %.5f, Lng %.5f (%3$s)</string>
+    <string name="map_location_coordinates">Lat %1$.5f, Lng %2$.5f (%3$s)</string>
     <string name="map_location_timestamp">Updated at %1$s</string>
     <string name="map_open_in_maps_button">Open in Maps</string>
     <string name="map_navigation_missing_address">No delivery address is available for this order.</string>
     <string name="map_navigation_app_missing">No maps app is installed to handle navigation.</string>
-    <string name="map_no_active_order_vendor">No active delivery selected. Tap Open in Maps to navigate to Cindy&#39;s store.</string>
+    <string name="map_no_active_order_vendor" formatted="false">No active delivery selected. Tap Open in Maps to navigate to Cindy's store.</string>
     <string name="map_navigation_missing_destination">No destination is available to open in Maps.</string>
-    <string name="map_vendor_fallback_address">Cindy&#39;s Bakeshop Hagonoy Bulacan</string>
+    <string name="map_vendor_fallback_address" formatted="false">Cindy's Bakeshop Hagonoy Bulacan</string>
 </resources>
