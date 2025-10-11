@@ -26,6 +26,7 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
 
     private static final int REQUEST_LOCATION_PERMISSIONS = 2001;
     private static final String KEY_LOCATION_PERMISSIONS_REQUESTED = "location_permissions_requested";
+    public static final String EXTRA_FALLBACK_DESTINATION = "com.example.deliveryapp.extra.FALLBACK_DESTINATION";
 
     private View activeOrderContainer;
     private TextView emptyStateView;
@@ -37,6 +38,8 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     private TextView locationDetailsView;
     private TextView locationTimestampView;
     private Button navigationButton;
+    @Nullable
+    private String fallbackNavigationAddress;
 
     private OrderTrackingManager orderTrackingManager;
     @Nullable
@@ -48,6 +51,17 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customer_map);
         setupBottomNavigation(R.id.menu_map);
+
+        String providedFallback = getIntent().getStringExtra(EXTRA_FALLBACK_DESTINATION);
+        if (!TextUtils.isEmpty(providedFallback)) {
+            fallbackNavigationAddress = providedFallback.trim();
+        }
+        if (TextUtils.isEmpty(fallbackNavigationAddress)) {
+            String resourceFallback = getString(R.string.map_vendor_fallback_address);
+            fallbackNavigationAddress = TextUtils.isEmpty(resourceFallback)
+                    ? null
+                    : resourceFallback.trim();
+        }
 
         orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
         if (savedInstanceState != null) {
@@ -104,6 +118,7 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
 
         if (navigationButton != null) {
             navigationButton.setOnClickListener(v -> launchNavigation());
+            updateNavigationButtonState();
         }
     }
 
@@ -150,22 +165,21 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
             }
         }
 
-        if (navigationButton != null) {
-            navigationButton.setEnabled(!TextUtils.isEmpty(activeOrder.getAddress()));
-        }
+        updateNavigationButtonState();
     }
 
     private void showNoActiveOrderState() {
         if (activeOrderContainer != null) {
             activeOrderContainer.setVisibility(View.GONE);
         }
-        if (navigationButton != null) {
-            navigationButton.setEnabled(false);
-        }
         if (emptyStateView != null) {
             emptyStateView.setVisibility(View.VISIBLE);
-            emptyStateView.setText(R.string.map_no_active_order);
+            int messageRes = TextUtils.isEmpty(fallbackNavigationAddress)
+                    ? R.string.map_no_active_order
+                    : R.string.map_no_active_order_vendor;
+            emptyStateView.setText(messageRes);
         }
+        updateNavigationButtonState();
     }
 
     private void refreshLocationState() {
@@ -223,14 +237,21 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     }
 
     private void launchNavigation() {
-        if (activeOrder == null) {
+        if (activeOrder == null && TextUtils.isEmpty(fallbackNavigationAddress)) {
             Toast.makeText(this, R.string.map_no_active_order, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String address = activeOrder.getAddress();
+        String address = null;
+        if (activeOrder != null) {
+            address = activeOrder.getAddress();
+        }
         if (TextUtils.isEmpty(address)) {
-            Toast.makeText(this, R.string.map_navigation_missing_address, Toast.LENGTH_SHORT).show();
+            address = fallbackNavigationAddress;
+        }
+
+        if (TextUtils.isEmpty(address)) {
+            Toast.makeText(this, R.string.map_navigation_missing_destination, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -294,5 +315,14 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         }
 
         Toast.makeText(this, R.string.map_location_permission_denied, Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateNavigationButtonState() {
+        if (navigationButton == null) {
+            return;
+        }
+        boolean hasOrderAddress = activeOrder != null && !TextUtils.isEmpty(activeOrder.getAddress());
+        boolean hasFallback = !TextUtils.isEmpty(fallbackNavigationAddress);
+        navigationButton.setEnabled(hasOrderAddress || hasFallback);
     }
 }
