@@ -17,6 +17,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
 import com.example.deliveryapp.tracking.OrderTrackingManager;
+import com.example.deliveryapp.network.UserProfile;
+import com.example.deliveryapp.network.UserService;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -40,6 +42,7 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     private Button navigationButton;
     @Nullable
     private String fallbackNavigationAddress;
+    private UserService userService;
 
     private OrderTrackingManager orderTrackingManager;
     @Nullable
@@ -53,15 +56,9 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         setupBottomNavigation(R.id.menu_map);
 
         String providedFallback = getIntent().getStringExtra(EXTRA_FALLBACK_DESTINATION);
-        if (!TextUtils.isEmpty(providedFallback)) {
-            fallbackNavigationAddress = providedFallback.trim();
-        }
-        if (TextUtils.isEmpty(fallbackNavigationAddress)) {
-            String resourceFallback = getString(R.string.map_vendor_fallback_address);
-            fallbackNavigationAddress = TextUtils.isEmpty(resourceFallback)
-                    ? null
-                    : resourceFallback.trim();
-        }
+        String resourceFallback = getString(R.string.map_vendor_fallback_address);
+        fallbackNavigationAddress = selectFallbackAddress(providedFallback, resourceFallback);
+        userService = new UserService();
 
         orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
         if (savedInstanceState != null) {
@@ -71,8 +68,10 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
             );
         }
         initViews();
+        applyFallbackNavigationAddress(fallbackNavigationAddress);
         refreshActiveOrder();
         refreshLocationState();
+        loadFallbackAddressFromProfile();
     }
 
     @Override
@@ -174,12 +173,20 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         }
         if (emptyStateView != null) {
             emptyStateView.setVisibility(View.VISIBLE);
-            int messageRes = TextUtils.isEmpty(fallbackNavigationAddress)
-                    ? R.string.map_no_active_order
-                    : R.string.map_no_active_order_vendor;
-            emptyStateView.setText(messageRes);
+            updateEmptyStateMessage();
         }
         updateNavigationButtonState();
+    }
+
+    private void updateEmptyStateMessage() {
+        if (emptyStateView == null) {
+            return;
+        }
+        if (TextUtils.isEmpty(fallbackNavigationAddress)) {
+            emptyStateView.setText(R.string.map_no_active_order);
+        } else {
+            emptyStateView.setText(getString(R.string.map_no_active_order_vendor, fallbackNavigationAddress));
+        }
     }
 
     private void refreshLocationState() {
@@ -324,5 +331,56 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         boolean hasOrderAddress = activeOrder != null && !TextUtils.isEmpty(activeOrder.getAddress());
         boolean hasFallback = !TextUtils.isEmpty(fallbackNavigationAddress);
         navigationButton.setEnabled(hasOrderAddress || hasFallback);
+    }
+
+    private void applyFallbackNavigationAddress(@Nullable String address) {
+        if (address != null) {
+            address = address.trim();
+        }
+        fallbackNavigationAddress = TextUtils.isEmpty(address) ? null : address;
+        updateNavigationButtonState();
+        if (activeOrder == null) {
+            updateEmptyStateMessage();
+        }
+    }
+
+    private void loadFallbackAddressFromProfile() {
+        if (!TextUtils.isEmpty(fallbackNavigationAddress)) {
+            return;
+        }
+
+        Integer userId = SessionManager.getUserId(getApplicationContext());
+        String email = SessionManager.getEmail(getApplicationContext());
+        if ((userId == null || userId <= 0) && TextUtils.isEmpty(email)) {
+            return;
+        }
+
+        userService.fetchUserProfile(userId, email, new UserService.UserProfileCallback() {
+            @Override
+            public void onSuccess(@NonNull UserProfile profile) {
+                String profileAddress = profile.getAddress();
+                if (!TextUtils.isEmpty(profileAddress)) {
+                    applyFallbackNavigationAddress(profileAddress);
+                }
+            }
+
+            @Override
+            public void onError(@NonNull String errorMessage) {
+                // Keep silent; the static fallback string will remain in place if provided.
+            }
+        });
+    }
+
+    @Nullable
+    private String selectFallbackAddress(@Nullable String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (!TextUtils.isEmpty(value)) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 }
