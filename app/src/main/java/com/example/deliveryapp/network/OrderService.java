@@ -3,6 +3,7 @@ package com.example.deliveryapp.network;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +35,9 @@ import java.util.Set;
  */
 public class OrderService {
 
+    private static final String TAG = "OrderService";
+    private static final int MAX_BODY_LOG_LENGTH = 500;
+
     public interface OrderFetchCallback {
         void onSuccess(@NonNull List<OrderInfo> orders, @Nullable String serverMessage);
 
@@ -50,21 +54,27 @@ public class OrderService {
 
     public void fetchUnfinishedOrders(int userId, @Nullable String email, @NonNull OrderFetchCallback callback) {
         if (userId <= 0 && TextUtils.isEmpty(email)) {
+            Log.w(TAG, "Aborting delivery fetch; missing both user ID and email.");
             callback.onError("Missing or invalid staff identity.");
             return;
         }
 
         URL base = connectionManager.buildUrl(AppConfig.ORDER_LIST_PATH);
         if (base == null) {
+            Log.e(TAG, "Order endpoint URL could not be resolved. Base URL is null.");
             callback.onError("Order endpoint URL could not be resolved.");
             return;
         }
 
         URL requestUrl = buildOrderListUrl(base, userId, email);
         if (requestUrl == null) {
+            Log.e(TAG, "Unable to build order request URL.");
             callback.onError("Unable to build the order request URL.");
             return;
         }
+
+        Log.d(TAG, "Fetching unfinished orders. userId=" + userId + ", email=" + email +
+                ", url=" + requestUrl);
 
         connectionManager.getNetworkExecutor().execute(() -> {
             HttpURLConnection connection = null;
@@ -77,6 +87,12 @@ public class OrderService {
 
                 int statusCode = connection.getResponseCode();
                 String bodyString = readResponseBody(connection, statusCode);
+                Log.d(TAG, "Order response received. status=" + statusCode +
+                        ", bodyLength=" + (bodyString != null ? bodyString.length() : 0));
+                if (statusCode >= 400) {
+                    Log.w(TAG, "Order request returned HTTP error. status=" + statusCode +
+                            ", body=" + abbreviateForLog(bodyString));
+                }
                 if (statusCode < 200 || statusCode >= 300) {
                     postError(callback, buildHttpErrorMessage(statusCode, bodyString));
                     return;
@@ -84,14 +100,19 @@ public class OrderService {
 
                 ResponseBundle bundle = parseOrders(bodyString);
                 if (bundle.errorMessage != null) {
+                    Log.w(TAG, "Server indicated an error while parsing orders: " + bundle.errorMessage);
                     postError(callback, bundle.errorMessage);
                     return;
                 }
 
                 List<OrderInfo> unfinished = filterUnfinished(bundle.orders);
+                Log.d(TAG, "Parsed " + (bundle.orders != null ? bundle.orders.size() : 0) +
+                        " orders; unfinished count=" + unfinished.size() +
+                        ", serverMessage=" + bundle.serverMessage);
                 postSuccess(callback, unfinished, bundle.serverMessage);
             } catch (IOException e) {
                 String message = e.getMessage();
+                Log.e(TAG, "IOException while loading orders: " + message, e);
                 postError(callback, message != null ? message : "Unable to load deliveries.");
             } finally {
                 if (connection != null) {
@@ -99,6 +120,18 @@ public class OrderService {
                 }
             }
         });
+    }
+
+    @NonNull
+    private String abbreviateForLog(@Nullable String value) {
+        if (value == null) {
+            return "null";
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() <= MAX_BODY_LOG_LENGTH) {
+            return trimmed;
+        }
+        return trimmed.substring(0, MAX_BODY_LOG_LENGTH) + "…";
     }
 
     private void postSuccess(@NonNull OrderFetchCallback callback, @NonNull List<OrderInfo> orders, @Nullable String message) {

@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +38,7 @@ import java.util.Locale;
 public class DeliveriesActivity extends BottomNavActivity {
 
     private static final int REQUEST_LOCATION_PERMISSIONS = 1001;
+    private static final String TAG = "DeliveriesActivity";
 
     private View refreshView;
     private View logoutView;
@@ -59,6 +61,7 @@ public class DeliveriesActivity extends BottomNavActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate: initializing deliveries screen");
         setContentView(R.layout.activity_deliveries);
         setupBottomNavigation(R.id.menu_deliveries);
 
@@ -66,6 +69,7 @@ public class DeliveriesActivity extends BottomNavActivity {
         orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
         showMessage(getString(R.string.deliveries_loading));
         showLoading(true);
+        Log.d(TAG, "onCreate: starting staff identity resolution");
         resolveStaffIdentity(false);
     }
 
@@ -108,23 +112,27 @@ public class DeliveriesActivity extends BottomNavActivity {
         }
 
         if (resolvedUserId != null) {
+            Log.d(TAG, "resolveStaffIdentity: user ID already cached=" + resolvedUserId);
             loadOrders(userRequestedRefresh);
             return;
         }
 
         String sessionEmail = SessionManager.getEmail(this);
         if (!TextUtils.isEmpty(sessionEmail)) {
+            Log.d(TAG, "resolveStaffIdentity: session email found=" + sessionEmail);
             resolvedEmail = sessionEmail;
         }
 
         Integer sessionUserId = SessionManager.getUserId(this);
         if (sessionUserId != null) {
+            Log.d(TAG, "resolveStaffIdentity: session user ID found=" + sessionUserId);
             resolvedUserId = sessionUserId;
             loadOrders(userRequestedRefresh);
             return;
         }
 
         if (AppConfig.DEFAULT_STAFF_USER_ID > 0) {
+            Log.d(TAG, "resolveStaffIdentity: using configured default user ID=" + AppConfig.DEFAULT_STAFF_USER_ID);
             resolvedUserId = AppConfig.DEFAULT_STAFF_USER_ID;
             if (TextUtils.isEmpty(resolvedEmail)) {
                 resolvedEmail = null;
@@ -135,6 +143,7 @@ public class DeliveriesActivity extends BottomNavActivity {
 
         String email = sessionEmail;
         if (TextUtils.isEmpty(email)) {
+            Log.w(TAG, "resolveStaffIdentity: no email available; cannot resolve user ID");
             showLoading(false);
             showMessage(getString(R.string.deliveries_missing_user));
             if (userRequestedRefresh) {
@@ -148,12 +157,14 @@ public class DeliveriesActivity extends BottomNavActivity {
         showMessage(getString(R.string.deliveries_resolving_user_id));
 
         final String lookupEmail = email;
+        Log.d(TAG, "resolveStaffIdentity: fetching user ID from server for " + lookupEmail);
         userService.fetchUserIdByEmail(lookupEmail, new UserService.UserIdCallback() {
             @Override
             public void onSuccess(int userId) {
                 isResolvingUserId = false;
                 resolvedUserId = userId;
                 resolvedEmail = lookupEmail;
+                Log.d(TAG, "resolveStaffIdentity: user ID resolved successfully. userId=" + userId);
                 SessionManager.storeSession(getApplicationContext(), lookupEmail, userId);
                 loadOrders(userRequestedRefresh);
             }
@@ -163,6 +174,7 @@ public class DeliveriesActivity extends BottomNavActivity {
                 isResolvingUserId = false;
                 resolvedUserId = null;
                 resolvedEmail = null;
+                Log.w(TAG, "resolveStaffIdentity: failed to resolve user ID. message=" + errorMessage);
                 showLoading(false);
                 String message = !TextUtils.isEmpty(errorMessage)
                         ? errorMessage
@@ -193,11 +205,14 @@ public class DeliveriesActivity extends BottomNavActivity {
         showMessage(getString(R.string.deliveries_loading));
 
         int currentUserId = resolvedUserId != null ? resolvedUserId : 0;
+        Log.d(TAG, "loadOrders: requesting deliveries. userId=" + currentUserId + ", email=" + resolvedEmail);
         orderService.fetchUnfinishedOrders(currentUserId, resolvedEmail, new OrderService.OrderFetchCallback() {
             @Override
             public void onSuccess(@NonNull List<OrderInfo> orders, @Nullable String serverMessage) {
                 isLoading = false;
                 showLoading(false);
+                Log.d(TAG, "loadOrders: request succeeded. orderCount=" + orders.size() +
+                        ", serverMessage=" + serverMessage);
                 if (orders.isEmpty()) {
                     String message = !TextUtils.isEmpty(serverMessage)
                             ? serverMessage
@@ -216,6 +231,7 @@ public class DeliveriesActivity extends BottomNavActivity {
             public void onError(@NonNull String errorMessage) {
                 isLoading = false;
                 showLoading(false);
+                Log.w(TAG, "loadOrders: request failed. message=" + errorMessage);
                 String message = !TextUtils.isEmpty(errorMessage)
                         ? errorMessage
                         : getString(R.string.deliveries_error);
