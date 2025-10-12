@@ -1,222 +1,230 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/screen_background"
+    android:orientation="vertical">
 
-    <!-- Header -->
-    <LinearLayout
-        android:id="@+id/header"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/historyToolbar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="16dp">
-
-        <!-- Hamburger -->
-        <ImageView
-            android:id="@+id/ivMenu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_menu"
-            android:tint="@android:color/black" />
-
-        <!-- Title -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="History"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:gravity="center" />
-    </LinearLayout>
-
-    <!-- Filters Row -->
-    <LinearLayout
-        android:id="@+id/filtersRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_below="@id/header"
-        android:padding="8dp">
-
-        <!-- From Date -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="From:"
-                android:textSize="12sp"
-                android:textColor="#000" />
-
-            <EditText
-                android:id="@+id/etFromDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:hint="________"
-                android:inputType="date"
-                android:textSize="12sp"
-                android:background="@null" />
-        </LinearLayout>
-
-        <!-- To Date -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="To:"
-                android:textSize="12sp"
-                android:textColor="#000" />
-
-            <EditText
-                android:id="@+id/etToDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:hint="________"
-                android:inputType="date"
-                android:textSize="12sp"
-                android:background="@null" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Summary Row -->
-    <LinearLayout
-        android:id="@+id/summaryRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@id/filtersRow"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/brand_primary"
+        android:elevation="0dp"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp">
+        app:titleCentered="true">
 
-        <!-- Total Orders -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:layout_gravity="center"
+            android:text="@string/history_title"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </com.google.android.material.appbar.MaterialToolbar>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Total Orders"
-                android:textSize="12sp"
-                android:textColor="#000" />
-
-            <TextView
-                android:id="@+id/tvTotalOrders"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="25"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#E53935" />
-        </LinearLayout>
-
-        <!-- Total Collections -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Total Collections"
-                android:textSize="12sp"
-                android:textColor="#000" />
-
-            <TextView
-                android:id="@+id/tvTotalCollections"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="₱ 55,000.00"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#E53935" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Orders List -->
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollHistory"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomNavigation"
-        android:layout_below="@id/summaryRow"
-        android:padding="16dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
 
         <LinearLayout
-            android:id="@+id/orderHistoryList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
 
-            <!-- Sample Date Header -->
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/filtersRow"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sept 1, 2025"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#E53935"
-                android:layout_marginTop="8dp" />
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <!-- Sample Order Item -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="From"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/etFromDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="________"
+                        android:inputType="date"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="To"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etToDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="________"
+                        android:inputType="date"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/summaryRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_card"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Orders"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvTotalOrders"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="25"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Collections"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvTotalCollections"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="₱ 55,000.00"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_card"
                 android:orientation="vertical"
-                android:paddingVertical="4dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="#125444"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Sept 1, 2025   10:00 AM   Item: 5   ₱ 900.00"
+                    android:text="Recent orders"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
-                    android:textColor="#000000" />
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/orderHistoryList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sept 1, 2025"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="#125444"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="₱ 1,250.00"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Completed"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+    <include
         android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/bottom_nav_selector"
-        app:itemTextColor="@color/bottom_nav_selector"
-        app:menu="@menu/bottom_nav_menu" />
+        layout="@layout/layout_bottom_nav" />
 
-</RelativeLayout>
+</LinearLayout>

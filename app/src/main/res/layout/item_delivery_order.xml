@@ -12,7 +12,7 @@
         android:id="@+id/orderNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#202020"
+        android:textColor="@color/text_primary"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textColor="#FF3B30"
+        android:textColor="@color/brand_primary"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textColor="#444444"
+        android:textColor="@color/text_primary"
         android:textSize="14sp" />
 
     <TextView
@@ -38,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:textColor="#444444"
+        android:textColor="@color/text_primary"
         android:textSize="14sp"
         android:visibility="gone" />
 
@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textColor="#666666"
+        android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
     <TextView
@@ -55,7 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:textColor="#202020"
+        android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:textStyle="bold" />
 
