@@ -17,10 +17,6 @@
         android:theme="@style/Theme.DeliveryApp"
         tools:targetApi="31">
         <activity
-            android:name=".WalletsActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".HistoryActivity"
             android:exported="false" />
 
@@ -30,10 +26,6 @@
 
         <activity
             android:name=".DeliveriesActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".StatusActivity"
             android:exported="false" />
 
         <activity

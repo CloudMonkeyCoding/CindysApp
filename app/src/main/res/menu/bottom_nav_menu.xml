@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_status"
-        android:icon="@android:drawable/ic_menu_agenda"
-        android:title="Status" />
-    <item
         android:id="@+id/menu_deliveries"
         android:icon="@android:drawable/ic_menu_directions"
         android:title="Deliveries" />
@@ -16,8 +12,4 @@
         android:id="@+id/menu_history"
         android:icon="@android:drawable/ic_menu_recent_history"
         android:title="History" />
-    <item
-        android:id="@+id/menu_wallets"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="Wallets" />
 </menu>

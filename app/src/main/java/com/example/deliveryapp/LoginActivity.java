@@ -28,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (SessionManager.hasActiveSession(this)) {
-            navigateToStatus();
+            navigateToDeliveries();
             finish();
             return;
         }
@@ -68,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
                 toggleLoading(false);
                 SessionManager.storeSession(getApplicationContext(), email, userId);
                 Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                navigateToStatus();
+                navigateToDeliveries();
                 finish();
             }
 
@@ -92,8 +92,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void navigateToStatus() {
-        Intent intent = new Intent(this, StatusActivity.class);
+    private void navigateToDeliveries() {
+        Intent intent = new Intent(this, DeliveriesActivity.class);
         startActivity(intent);
     }
 }

@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (SessionManager.hasActiveSession(this)) {
-            Intent intent = new Intent(this, StatusActivity.class);
+            Intent intent = new Intent(this, DeliveriesActivity.class);
             startActivity(intent);
             finish();
             return;

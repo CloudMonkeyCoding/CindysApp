@@ -22,16 +22,12 @@ public abstract class BottomNavActivity extends AppCompatActivity {
 
             Intent intent = null;
             int itemId = item.getItemId();
-            if (itemId == R.id.menu_status) {
-                intent = new Intent(this, StatusActivity.class);
-            } else if (itemId == R.id.menu_deliveries) {
+            if (itemId == R.id.menu_deliveries) {
                 intent = new Intent(this, DeliveriesActivity.class);
             } else if (itemId == R.id.menu_map) {
                 intent = new Intent(this, MapActivity.class);
             } else if (itemId == R.id.menu_history) {
                 intent = new Intent(this, HistoryActivity.class);
-            } else if (itemId == R.id.menu_wallets) {
-                intent = new Intent(this, WalletsActivity.class);
             }
 
             if (intent != null) {
