@@ -49,6 +49,8 @@ public class DeliveriesActivity extends BottomNavActivity {
     @Nullable
     private Integer resolvedUserId;
     @Nullable
+    private String resolvedEmail;
+    @Nullable
     private OrderInfo pendingPermissionOrder;
     private boolean isResolvingUserId;
     private boolean isLoading;
@@ -104,6 +106,11 @@ public class DeliveriesActivity extends BottomNavActivity {
             return;
         }
 
+        String sessionEmail = SessionManager.getEmail(this);
+        if (!TextUtils.isEmpty(sessionEmail)) {
+            resolvedEmail = sessionEmail;
+        }
+
         Integer sessionUserId = SessionManager.getUserId(this);
         if (sessionUserId != null) {
             resolvedUserId = sessionUserId;
@@ -113,11 +120,14 @@ public class DeliveriesActivity extends BottomNavActivity {
 
         if (AppConfig.DEFAULT_STAFF_USER_ID > 0) {
             resolvedUserId = AppConfig.DEFAULT_STAFF_USER_ID;
+            if (TextUtils.isEmpty(resolvedEmail)) {
+                resolvedEmail = null;
+            }
             loadOrders(userRequestedRefresh);
             return;
         }
 
-        String email = SessionManager.getEmail(this);
+        String email = sessionEmail;
         if (TextUtils.isEmpty(email)) {
             showLoading(false);
             showMessage(getString(R.string.deliveries_missing_user));
@@ -137,6 +147,7 @@ public class DeliveriesActivity extends BottomNavActivity {
             public void onSuccess(int userId) {
                 isResolvingUserId = false;
                 resolvedUserId = userId;
+                resolvedEmail = lookupEmail;
                 SessionManager.storeSession(getApplicationContext(), lookupEmail, userId);
                 loadOrders(userRequestedRefresh);
             }
@@ -145,6 +156,7 @@ public class DeliveriesActivity extends BottomNavActivity {
             public void onError(@NonNull String errorMessage) {
                 isResolvingUserId = false;
                 resolvedUserId = null;
+                resolvedEmail = null;
                 showLoading(false);
                 String message = !TextUtils.isEmpty(errorMessage)
                         ? errorMessage
@@ -174,7 +186,8 @@ public class DeliveriesActivity extends BottomNavActivity {
         showLoading(true);
         showMessage(getString(R.string.deliveries_loading));
 
-        orderService.fetchUnfinishedOrders(resolvedUserId, new OrderService.OrderFetchCallback() {
+        int currentUserId = resolvedUserId != null ? resolvedUserId : 0;
+        orderService.fetchUnfinishedOrders(currentUserId, resolvedEmail, new OrderService.OrderFetchCallback() {
             @Override
             public void onSuccess(@NonNull List<OrderInfo> orders, @Nullable String serverMessage) {
                 isLoading = false;

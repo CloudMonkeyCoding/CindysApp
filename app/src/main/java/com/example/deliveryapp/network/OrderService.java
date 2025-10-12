@@ -48,9 +48,9 @@ public class OrderService {
         mainHandler = connectionManager.getMainThreadHandler();
     }
 
-    public void fetchUnfinishedOrders(int userId, @NonNull OrderFetchCallback callback) {
-        if (userId <= 0) {
-            callback.onError("Missing or invalid staff user ID.");
+    public void fetchUnfinishedOrders(int userId, @Nullable String email, @NonNull OrderFetchCallback callback) {
+        if (userId <= 0 && TextUtils.isEmpty(email)) {
+            callback.onError("Missing or invalid staff identity.");
             return;
         }
 
@@ -60,7 +60,7 @@ public class OrderService {
             return;
         }
 
-        URL requestUrl = buildOrderListUrl(base, userId);
+        URL requestUrl = buildOrderListUrl(base, userId, email);
         if (requestUrl == null) {
             callback.onError("Unable to build the order request URL.");
             return;
@@ -110,12 +110,17 @@ public class OrderService {
     }
 
     @Nullable
-    private URL buildOrderListUrl(@NonNull URL base, int userId) {
-        Uri uri = Uri.parse(base.toString())
+    private URL buildOrderListUrl(@NonNull URL base, int userId, @Nullable String email) {
+        Uri.Builder builder = Uri.parse(base.toString())
                 .buildUpon()
-                .appendQueryParameter("action", AppConfig.ORDER_LIST_ACTION)
-                .appendQueryParameter("user_id", String.valueOf(userId))
-                .build();
+                .appendQueryParameter("action", AppConfig.ORDER_LIST_ACTION);
+        if (userId > 0) {
+            builder.appendQueryParameter("user_id", String.valueOf(userId));
+        }
+        if (!TextUtils.isEmpty(email)) {
+            builder.appendQueryParameter("email", email.trim());
+        }
+        Uri uri = builder.build();
         try {
             return new URL(uri.toString());
         } catch (MalformedURLException e) {
