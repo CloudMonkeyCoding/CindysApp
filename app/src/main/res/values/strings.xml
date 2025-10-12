@@ -46,6 +46,7 @@
     <string name="status_shift_duration_minutes_only">%1$d min%2$s</string>
     <string name="deliveries_toolbar_title">Deliveries</string>
     <string name="deliveries_refresh">Refresh</string>
+    <string name="deliveries_logout">Log out</string>
     <string name="deliveries_loading">Loading deliveries…</string>
     <string name="deliveries_loading_in_progress">Still loading deliveries…</string>
     <string name="deliveries_resolving_user_id">Looking up your staff profile…</string>
@@ -70,6 +71,7 @@
     <string name="deliveries_order_total">Total: %1$s</string>
     <string name="deliveries_order_meta_fallback">Details unavailable</string>
     <string name="deliveries_view_in_maps_button">View directions in Maps</string>
+    <string name="deliveries_logout_toast">Signed out</string>
     <plurals name="deliveries_item_count">
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>

@@ -39,6 +39,7 @@ public class DeliveriesActivity extends BottomNavActivity {
     private static final int REQUEST_LOCATION_PERMISSIONS = 1001;
 
     private View refreshView;
+    private View logoutView;
     private ProgressBar deliveriesLoading;
     private TextView deliveriesMessage;
     private LinearLayout deliveriesListContainer;
@@ -73,6 +74,7 @@ public class DeliveriesActivity extends BottomNavActivity {
         deliveriesMessage = findViewById(R.id.deliveriesMessage);
         deliveriesListContainer = findViewById(R.id.deliveriesListContainer);
         refreshView = findViewById(R.id.deliveriesRefresh);
+        logoutView = findViewById(R.id.deliveriesLogout);
 
         if (refreshView != null) {
             refreshView.setOnClickListener(v -> {
@@ -90,6 +92,10 @@ public class DeliveriesActivity extends BottomNavActivity {
                     resolveStaffIdentity(true);
                 }
             });
+        }
+
+        if (logoutView != null) {
+            logoutView.setOnClickListener(v -> handleLogout());
         }
     }
 
@@ -447,5 +453,19 @@ public class DeliveriesActivity extends BottomNavActivity {
 
     private void showToast(@NonNull String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void handleLogout() {
+        SessionManager.clearSession(getApplicationContext());
+        resolvedUserId = null;
+        resolvedEmail = null;
+        isLoading = false;
+        isResolvingUserId = false;
+        Toast.makeText(this, getString(R.string.deliveries_logout_toast), Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
