@@ -125,8 +125,8 @@ request:
 
 | Property | Default | Purpose |
 | --- | --- | --- |
-| `ORDER_LIST_PATH` | `PHP/order_api.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the driver's orders. The client sends a `GET` request with `action=<ORDER_LIST_ACTION>` and `user_id=<staff id>`. Point this at the Cindy's Bakeshop `order_api.php` helper or a compatible endpoint that returns a JSON array of orders. |
-| `ORDER_LIST_ACTION` | `list` | Action query parameter appended when requesting orders for the driver. |
+| `ORDER_LIST_PATH` | `PHP/order_api.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the driver's orders. The client sends a `GET` request with `action=<ORDER_LIST_ACTION>` plus any available identity parameters. Point this at the Cindy's Bakeshop `order_api.php` helper (for example [`https://evotech.slarenasitsolutions.com/PHP/order_api.php`](https://evotech.slarenasitsolutions.com/PHP/order_api.php)) or a compatible endpoint that returns a JSON array of orders. |
+| `ORDER_LIST_ACTION` | `list_all` | Action query parameter appended when requesting orders for the driver. |
 
 Each order response should include fields such as `Order_ID`, `Status`,
 `Item_Count`, `Item_Summary`, `Total_Amount`, `Order_Date`, `Fulfillment_Type`,

@@ -41,7 +41,7 @@ val orderListPath = (project.findProperty("ORDER_LIST_PATH") as? String)
 
 val orderListAction = (project.findProperty("ORDER_LIST_ACTION") as? String)
     ?.takeIf { it.isNotBlank() }
-    ?: "list"
+    ?: "list_all"
 
 fun String.toBuildConfigString(): String = this
     .replace("\\", "\\\\")

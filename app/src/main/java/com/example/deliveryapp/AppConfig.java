@@ -61,7 +61,7 @@ public final class AppConfig {
 
     public static final String ORDER_LIST_ACTION = resolveString(
             "ORDER_LIST_ACTION",
-            "list"
+            "list_all"
     );
 
     private AppConfig() {
