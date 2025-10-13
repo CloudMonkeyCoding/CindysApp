@@ -145,13 +145,41 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                app:backgroundTint="?attr/colorPrimary"
                 android:enabled="false"
                 android:text="@string/map_open_in_maps_button"
                 android:textAllCaps="false"
                 android:textColor="?attr/colorOnPrimary"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:backgroundTint="?attr/colorPrimary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMarkArrived"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:enabled="false"
+                android:text="@string/map_arrived_button"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="?attr/colorPrimary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMarkDelivered"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:enabled="false"
+                android:text="@string/map_delivered_button"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="?attr/colorPrimary" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

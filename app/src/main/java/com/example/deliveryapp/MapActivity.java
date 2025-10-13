@@ -43,6 +43,8 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     private TextView locationDetailsView;
     private TextView locationTimestampView;
     private Button navigationButton;
+    private Button arrivedStatusButton;
+    private Button deliveredStatusButton;
     @Nullable
     private String fallbackNavigationAddress;
     private UserService userService;
@@ -115,6 +117,8 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         locationDetailsView = findViewById(R.id.mapLocationDetails);
         locationTimestampView = findViewById(R.id.mapLocationTimestamp);
         navigationButton = findViewById(R.id.btnArrivedCustomer);
+        arrivedStatusButton = findViewById(R.id.btnMarkArrived);
+        deliveredStatusButton = findViewById(R.id.btnMarkDelivered);
 
         if (locationDetailsView != null) {
             locationDetailsView.setText(R.string.map_location_unavailable);
@@ -122,8 +126,17 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
 
         if (navigationButton != null) {
             navigationButton.setOnClickListener(v -> launchNavigation());
-            updateNavigationButtonState();
         }
+
+        if (arrivedStatusButton != null) {
+            arrivedStatusButton.setOnClickListener(v -> handleArrivedTapped());
+        }
+
+        if (deliveredStatusButton != null) {
+            deliveredStatusButton.setOnClickListener(v -> handleDeliveredTapped());
+        }
+
+        updateNavigationButtonState();
     }
 
     private void refreshActiveOrder() {
@@ -334,6 +347,12 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
 
     private void updateNavigationButtonState() {
         if (navigationButton == null) {
+            if (arrivedStatusButton != null) {
+                arrivedStatusButton.setEnabled(activeOrder != null);
+            }
+            if (deliveredStatusButton != null) {
+                deliveredStatusButton.setEnabled(activeOrder != null);
+            }
             return;
         }
         boolean hasOrderAddress = activeOrder != null && !TextUtils.isEmpty(activeOrder.getAddress());
@@ -342,6 +361,43 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         navigationButton.setEnabled(enabled);
         Log.d(TAG, "Navigation button state updated. hasOrderAddress=" + hasOrderAddress
                 + ", hasFallback=" + hasFallback + ", enabled=" + enabled);
+
+        boolean hasActiveOrder = activeOrder != null;
+        if (arrivedStatusButton != null) {
+            arrivedStatusButton.setEnabled(hasActiveOrder);
+        }
+        if (deliveredStatusButton != null) {
+            deliveredStatusButton.setEnabled(hasActiveOrder);
+        }
+        Log.d(TAG, "Status buttons state updated. hasActiveOrder=" + hasActiveOrder
+                + ", arrivedEnabled=" + (arrivedStatusButton != null && arrivedStatusButton.isEnabled())
+                + ", deliveredEnabled=" + (deliveredStatusButton != null && deliveredStatusButton.isEnabled()));
+    }
+
+    private void handleArrivedTapped() {
+        if (activeOrder == null) {
+            Log.w(TAG, "Arrived button tapped without an active order selected.");
+            Toast.makeText(this, R.string.map_arrived_no_active_order, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.i(TAG, "Arrived button tapped for order " + activeOrder.getOrderId());
+        Toast.makeText(this,
+                getString(R.string.map_arrived_toast, activeOrder.getOrderId()),
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void handleDeliveredTapped() {
+        if (activeOrder == null) {
+            Log.w(TAG, "Delivered button tapped without an active order selected.");
+            Toast.makeText(this, R.string.map_delivered_no_active_order, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.i(TAG, "Delivered button tapped for order " + activeOrder.getOrderId());
+        Toast.makeText(this,
+                getString(R.string.map_delivered_toast, activeOrder.getOrderId()),
+                Toast.LENGTH_SHORT).show();
     }
 
     private void bindOrderAddress() {

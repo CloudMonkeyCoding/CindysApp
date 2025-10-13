@@ -95,10 +95,16 @@
     <string name="map_location_coordinates">Lat %1$.5f, Lng %2$.5f (%3$s)</string>
     <string name="map_location_timestamp">Updated at %1$s</string>
     <string name="map_open_in_maps_button">Open in Maps</string>
+    <string name="map_arrived_button">Arrived</string>
+    <string name="map_delivered_button">Delivered successfully</string>
     <string name="map_navigation_missing_address">No delivery address is available for this order.</string>
     <string name="map_navigation_app_missing">No maps app is installed to handle navigation.</string>
     <string name="map_no_active_order_vendor">No active delivery selected. Tap Open in Maps to navigate to %1$s.</string>
     <string name="map_navigation_missing_destination">No destination is available to open in Maps.</string>
     <string name="map_vendor_fallback_address" formatted="false"></string>
+    <string name="map_arrived_toast">Marked order #%1$d as arrived.</string>
+    <string name="map_delivered_toast">Marked order #%1$d as delivered.</string>
+    <string name="map_arrived_no_active_order">Select an active delivery before marking arrival.</string>
+    <string name="map_delivered_no_active_order">Select an active delivery before marking delivery complete.</string>
     <string name="history_title">History</string>
 </resources>
