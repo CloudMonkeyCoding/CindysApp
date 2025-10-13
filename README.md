@@ -16,25 +16,13 @@ Once the SDK path is configured you can build the app from the command line with
 If you prefer Android Studio, open the project directory in the IDE and it will
 reuse the same `local.properties` configuration.
 
-## Enabling Google Maps
+## Viewing delivery routes in Google Maps
 
-The **Deliveries** screen embeds the Google Maps SDK to preview the driver's
-location. Supply a Maps API key when you build so tiles can load correctly:
-
-```sh
-./gradlew assembleDebug -PGOOGLE_MAPS_API_KEY=your_real_maps_key
-```
-
-Any of the following Gradle properties are accepted (the first non-empty value
-wins):
-
-* `GOOGLE_MAPS_API_KEY`
-* `MAPS_API_KEY`
-
-You can also export an environment variable named `GOOGLE_MAPS_API_KEY` or
-`MAPS_API_KEY` before invoking Gradle. When no key is provided the app surfaces
-an inline warning in place of the map so the missing configuration is obvious at
-runtime.
+The **Deliveries** screen now avoids embedding the Google Maps SDK entirely.
+Each order card exposes a **View directions in Maps** button that launches the
+installed mapping app (Google Maps when available) with an `geo:` query for the
+delivery address. Because we rely on the public Maps intents API, no API key is
+required to build or run the project.
 
 ## Pointing the app at your own server
 
@@ -81,14 +69,14 @@ modifying Java sources:
 | `SHIFT_START_ACTION` | `start_shift` | The `action` form value posted when starting a shift. |
 | `USER_PROFILE_PATH` | `PHP/user_api.php` | Relative path queried to look up the signed-in driver's account details. |
 | `USER_PROFILE_ACTION` | `get_profile` | Action parameter passed when resolving the driver's profile. |
-| `DEFAULT_STAFF_USER_ID` | `0` | Optional fallback `User_ID` to use when no Firebase login is available. |
+| `DEFAULT_STAFF_USER_ID` | `0` | Optional fallback `User_ID` to use when no staff login is available. |
 
-When a driver signs in with Firebase, the **Status** screen automatically calls
-`USER_PROFILE_PATH` with the configured `USER_PROFILE_ACTION` and the driver's
-email to retrieve the numeric `user_id`. That identifier is then passed to the
+When a driver signs in from the login screen, the app now looks up their
+profile via the configured `USER_PROFILE_PATH`/`USER_PROFILE_ACTION` pair and
+caches the returned numeric `user_id`. That identifier is then passed to the
 shift endpoints so the correct assignments load without hardcoding anything in
 the app. Only set `DEFAULT_STAFF_USER_ID` for manual testing on builds where no
-Firebase session exists.
+staff session exists.
 
 > **Tip:** If you see a *“Shift endpoint was not found (HTTP 404)”* message in
 > the app, the configured `SHIFT_SCHEDULE_PATH` probably does not exist on your
@@ -137,8 +125,8 @@ request:
 
 | Property | Default | Purpose |
 | --- | --- | --- |
-| `ORDER_LIST_PATH` | `PHP/order_api.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the driver's orders. The client sends a `GET` request with `action=<ORDER_LIST_ACTION>` and `user_id=<staff id>`. Point this at the Cindy's Bakeshop `order_api.php` helper or a compatible endpoint that returns a JSON array of orders. |
-| `ORDER_LIST_ACTION` | `list` | Action query parameter appended when requesting orders for the driver. |
+| `ORDER_LIST_PATH` | `PHP/order_api.php` | Relative path (resolved against `API_BASE_URL`) used to fetch the driver's orders. The client sends a `GET` request with `action=<ORDER_LIST_ACTION>` plus any available identity parameters. Point this at the Cindy's Bakeshop `order_api.php` helper (for example [`https://evotech.slarenasitsolutions.com/PHP/order_api.php`](https://evotech.slarenasitsolutions.com/PHP/order_api.php)) or a compatible endpoint that returns a JSON array of orders. |
+| `ORDER_LIST_ACTION` | `list_all` | Action query parameter appended when requesting orders for the driver. |
 
 Each order response should include fields such as `Order_ID`, `Status`,
 `Item_Count`, `Item_Summary`, `Total_Amount`, `Order_Date`, `Fulfillment_Type`,

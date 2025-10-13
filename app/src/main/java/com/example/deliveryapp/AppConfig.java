@@ -61,12 +61,7 @@ public final class AppConfig {
 
     public static final String ORDER_LIST_ACTION = resolveString(
             "ORDER_LIST_ACTION",
-            "list"
-    );
-
-    public static final String GOOGLE_MAPS_API_KEY = resolveString(
-            "GOOGLE_MAPS_API_KEY",
-            ""
+            "list_all"
     );
 
     private AppConfig() {

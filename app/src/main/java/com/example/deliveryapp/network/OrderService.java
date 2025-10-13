@@ -3,6 +3,7 @@ package com.example.deliveryapp.network;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +35,9 @@ import java.util.Set;
  */
 public class OrderService {
 
+    private static final String TAG = "OrderService";
+    private static final int MAX_BODY_LOG_LENGTH = 500;
+
     public interface OrderFetchCallback {
         void onSuccess(@NonNull List<OrderInfo> orders, @Nullable String serverMessage);
 
@@ -48,57 +52,166 @@ public class OrderService {
         mainHandler = connectionManager.getMainThreadHandler();
     }
 
-    public void fetchUnfinishedOrders(int userId, @NonNull OrderFetchCallback callback) {
-        if (userId <= 0) {
-            callback.onError("Missing or invalid staff user ID.");
+    public void fetchUnfinishedOrders(int userId, @Nullable String email, @NonNull OrderFetchCallback callback) {
+        if (userId <= 0 && TextUtils.isEmpty(email)) {
+            Log.w(TAG, "Aborting delivery fetch; missing both user ID and email.");
+            callback.onError("Missing or invalid staff identity.");
             return;
         }
 
         URL base = connectionManager.buildUrl(AppConfig.ORDER_LIST_PATH);
         if (base == null) {
+            Log.e(TAG, "Order endpoint URL could not be resolved. Base URL is null.");
             callback.onError("Order endpoint URL could not be resolved.");
             return;
         }
 
-        URL requestUrl = buildOrderListUrl(base, userId);
-        if (requestUrl == null) {
+        List<RequestVariant> requestVariants = buildOrderRequestVariants(base, userId, email);
+        if (requestVariants.isEmpty()) {
+            Log.e(TAG, "Unable to build any order request URLs.");
             callback.onError("Unable to build the order request URL.");
             return;
         }
 
+        Log.d(TAG, "Fetching unfinished orders. userId=" + userId + ", email=" + email
+                + ", attemptCount=" + requestVariants.size());
+
         connectionManager.getNetworkExecutor().execute(() -> {
-            HttpURLConnection connection = null;
-            try {
-                connection = (HttpURLConnection) requestUrl.openConnection();
-                connection.setConnectTimeout(10_000);
-                connection.setReadTimeout(10_000);
-                connection.setRequestMethod("GET");
-                connection.connect();
+            OrderRequestResult lastResult = null;
+            for (int attempt = 0; attempt < requestVariants.size(); attempt++) {
+                RequestVariant variant = requestVariants.get(attempt);
+                Log.d(TAG, "Order request attempt " + (attempt + 1) + "/" + requestVariants.size()
+                        + ". description=" + variant.description + ", url=" + variant.url);
 
-                int statusCode = connection.getResponseCode();
-                String bodyString = readResponseBody(connection, statusCode);
-                if (statusCode < 200 || statusCode >= 300) {
-                    postError(callback, buildHttpErrorMessage(statusCode, bodyString));
+                OrderRequestResult result = executeOrderRequest(variant.url);
+                if (result.success) {
+                    Log.d(TAG, "Order request succeeded on attempt " + (attempt + 1)
+                            + ". unfinishedCount=" + result.orders.size()
+                            + ", serverMessage=" + result.serverMessage);
+                    postSuccess(callback, result.orders, result.serverMessage);
                     return;
                 }
 
-                ResponseBundle bundle = parseOrders(bodyString);
-                if (bundle.errorMessage != null) {
-                    postError(callback, bundle.errorMessage);
-                    return;
+                lastResult = result;
+                StringBuilder failureMessage = new StringBuilder("Order request attempt failed. description=")
+                        .append(variant.description)
+                        .append(", error=")
+                        .append(result.errorMessage);
+                if (result.statusCode > 0) {
+                    failureMessage.append(", status=").append(result.statusCode);
                 }
-
-                List<OrderInfo> unfinished = filterUnfinished(bundle.orders);
-                postSuccess(callback, unfinished, bundle.serverMessage);
-            } catch (IOException e) {
-                String message = e.getMessage();
-                postError(callback, message != null ? message : "Unable to load deliveries.");
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
+                if (!TextUtils.isEmpty(result.responsePreview)) {
+                    failureMessage.append(", preview=").append(result.responsePreview);
                 }
+                Log.w(TAG, failureMessage.toString());
             }
+
+            String message = lastResult != null && !TextUtils.isEmpty(lastResult.errorMessage)
+                    ? lastResult.errorMessage
+                    : "Unable to load deliveries.";
+            postError(callback, message);
         });
+    }
+
+    @NonNull
+    private List<RequestVariant> buildOrderRequestVariants(@NonNull URL base, int userId, @Nullable String email) {
+        List<RequestVariant> variants = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+
+        if (userId > 0 && !TextUtils.isEmpty(email)) {
+            URL url = buildOrderListUrl(base, userId, email);
+            addVariant(variants, seen, url, "user-id-and-email");
+        }
+
+        if (!TextUtils.isEmpty(email)) {
+            URL url = buildOrderListUrl(base, -1, email);
+            addVariant(variants, seen, url, "email-only");
+        }
+
+        if (userId > 0) {
+            URL url = buildOrderListUrl(base, userId, null);
+            addVariant(variants, seen, url, "user-id-only");
+        }
+
+        if (variants.isEmpty()) {
+            URL url = buildOrderListUrl(base, 0, null);
+            addVariant(variants, seen, url, "no-identity");
+        }
+
+        return variants;
+    }
+
+    private void addVariant(@NonNull List<RequestVariant> variants,
+                             @NonNull Set<String> seen,
+                             @Nullable URL url,
+                             @NonNull String description) {
+        if (url == null) {
+            return;
+        }
+        String key = url.toString();
+        if (seen.add(key)) {
+            variants.add(new RequestVariant(url, description));
+        }
+    }
+
+    @NonNull
+    private OrderRequestResult executeOrderRequest(@NonNull URL requestUrl) {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) requestUrl.openConnection();
+            connection.setConnectTimeout(10_000);
+            connection.setReadTimeout(10_000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("User-Agent", "CindysDeliveryApp/1.0 (Android)");
+            connection.connect();
+
+            int statusCode = connection.getResponseCode();
+            String bodyString = readResponseBody(connection, statusCode);
+            Log.d(TAG, "Order response received. status=" + statusCode
+                    + ", bodyLength=" + (bodyString != null ? bodyString.length() : 0));
+
+            if (statusCode < 200 || statusCode >= 300) {
+                if (statusCode >= 400) {
+                    Log.w(TAG, "Order request returned HTTP error. status=" + statusCode
+                            + ", body=" + abbreviateForLog(bodyString));
+                }
+                String message = buildHttpErrorMessage(statusCode, bodyString != null ? bodyString : "");
+                return OrderRequestResult.httpError(statusCode, message, abbreviateForLog(bodyString));
+            }
+
+            ResponseBundle bundle = parseOrders(bodyString != null ? bodyString : "");
+            if (bundle.errorMessage != null) {
+                Log.w(TAG, "Server indicated an error while parsing orders: " + bundle.errorMessage);
+                return OrderRequestResult.serverError(bundle.errorMessage);
+            }
+
+            List<OrderInfo> unfinished = filterUnfinished(bundle.orders);
+            Log.d(TAG, "Parsed " + (bundle.orders != null ? bundle.orders.size() : 0)
+                    + " orders; unfinished count=" + unfinished.size()
+                    + ", serverMessage=" + bundle.serverMessage);
+            return OrderRequestResult.success(unfinished, bundle.serverMessage);
+        } catch (IOException e) {
+            String message = e.getMessage();
+            Log.e(TAG, "IOException while loading orders: " + message, e);
+            return OrderRequestResult.networkError(message != null ? message : "Unable to load deliveries.");
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    @NonNull
+    private String abbreviateForLog(@Nullable String value) {
+        if (value == null) {
+            return "null";
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() <= MAX_BODY_LOG_LENGTH) {
+            return trimmed;
+        }
+        return trimmed.substring(0, MAX_BODY_LOG_LENGTH) + "…";
     }
 
     private void postSuccess(@NonNull OrderFetchCallback callback, @NonNull List<OrderInfo> orders, @Nullable String message) {
@@ -110,12 +223,17 @@ public class OrderService {
     }
 
     @Nullable
-    private URL buildOrderListUrl(@NonNull URL base, int userId) {
-        Uri uri = Uri.parse(base.toString())
+    private URL buildOrderListUrl(@NonNull URL base, int userId, @Nullable String email) {
+        Uri.Builder builder = Uri.parse(base.toString())
                 .buildUpon()
-                .appendQueryParameter("action", AppConfig.ORDER_LIST_ACTION)
-                .appendQueryParameter("user_id", String.valueOf(userId))
-                .build();
+                .appendQueryParameter("action", AppConfig.ORDER_LIST_ACTION);
+        if (userId > 0) {
+            builder.appendQueryParameter("user_id", String.valueOf(userId));
+        }
+        if (!TextUtils.isEmpty(email)) {
+            builder.appendQueryParameter("email", email.trim());
+        }
+        Uri uri = builder.build();
         try {
             return new URL(uri.toString());
         } catch (MalformedURLException e) {
@@ -441,6 +559,60 @@ public class OrderService {
         String serverMessage;
         @Nullable
         String errorMessage;
+    }
+
+    private static final class RequestVariant {
+        private final URL url;
+        private final String description;
+
+        private RequestVariant(@NonNull URL url, @NonNull String description) {
+            this.url = url;
+            this.description = description;
+        }
+    }
+
+    private static final class OrderRequestResult {
+        private final boolean success;
+        @NonNull
+        private final List<OrderInfo> orders;
+        @Nullable
+        private final String serverMessage;
+        @Nullable
+        private final String errorMessage;
+        private final int statusCode;
+        @Nullable
+        private final String responsePreview;
+
+        private OrderRequestResult(boolean success,
+                                   @NonNull List<OrderInfo> orders,
+                                   @Nullable String serverMessage,
+                                   @Nullable String errorMessage,
+                                   int statusCode,
+                                   @Nullable String responsePreview) {
+            this.success = success;
+            this.orders = orders;
+            this.serverMessage = serverMessage;
+            this.errorMessage = errorMessage;
+            this.statusCode = statusCode;
+            this.responsePreview = responsePreview;
+        }
+
+        private static OrderRequestResult success(@NonNull List<OrderInfo> orders, @Nullable String serverMessage) {
+            return new OrderRequestResult(true, orders, serverMessage, null, 200, null);
+        }
+
+        private static OrderRequestResult httpError(int statusCode, @NonNull String errorMessage,
+                                                    @Nullable String responsePreview) {
+            return new OrderRequestResult(false, Collections.emptyList(), null, errorMessage, statusCode, responsePreview);
+        }
+
+        private static OrderRequestResult serverError(@NonNull String errorMessage) {
+            return new OrderRequestResult(false, Collections.emptyList(), null, errorMessage, 200, null);
+        }
+
+        private static OrderRequestResult networkError(@NonNull String errorMessage) {
+            return new OrderRequestResult(false, Collections.emptyList(), null, errorMessage, -1, null);
+        }
     }
 
     private static final Set<String> FINISHED_STATUSES;

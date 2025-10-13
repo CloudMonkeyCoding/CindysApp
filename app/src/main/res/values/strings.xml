@@ -46,6 +46,7 @@
     <string name="status_shift_duration_minutes_only">%1$d min%2$s</string>
     <string name="deliveries_toolbar_title">Deliveries</string>
     <string name="deliveries_refresh">Refresh</string>
+    <string name="deliveries_logout">Log out</string>
     <string name="deliveries_loading">Loading deliveries…</string>
     <string name="deliveries_loading_in_progress">Still loading deliveries…</string>
     <string name="deliveries_resolving_user_id">Looking up your staff profile…</string>
@@ -69,14 +70,8 @@
     <string name="deliveries_tracking_unavailable">Order #%1$d marked as active, but GPS tracking could not start.</string>
     <string name="deliveries_order_total">Total: %1$s</string>
     <string name="deliveries_order_meta_fallback">Details unavailable</string>
-    <string name="deliveries_map_loading">Loading delivery map…</string>
-    <string name="deliveries_map_permission_required">Enable location permissions to preview your route.</string>
-    <string name="deliveries_map_waiting_location">Waiting for your current location…</string>
-    <string name="deliveries_map_last_updated">Last location update: %1$s</string>
-    <string name="deliveries_map_unavailable">Map unavailable.</string>
-    <string name="deliveries_map_missing_api_key">Add a Google Maps API key to view this map.</string>
-    <string name="deliveries_map_initialization_failed">Google Maps could not be initialized right now.</string>
-    <string name="deliveries_map_driver_marker_title">Your location</string>
+    <string name="deliveries_view_in_maps_button">View directions in Maps</string>
+    <string name="deliveries_logout_toast">Signed out</string>
     <plurals name="deliveries_item_count">
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
@@ -89,6 +84,7 @@
     <string name="map_order_summary_placeholder">Item summary unavailable</string>
     <string name="map_order_address">Deliver to: %1$s</string>
     <string name="map_order_address_missing">Delivery address unavailable</string>
+    <string name="map_order_address_fallback">Navigate to vendor location: %1$s</string>
     <string name="map_no_active_order">Select a delivery from the Deliveries tab to begin navigation.</string>
     <string name="map_location_header">Driver location</string>
     <string name="map_location_permission_missing">Enable location permissions to keep tracking your position.</string>
@@ -96,9 +92,19 @@
     <string name="map_location_permission_denied">Location permissions denied. Tracking will remain paused.</string>
     <string name="map_location_unavailable">Waiting for your current location…</string>
     <string name="map_location_provider_unknown">Unknown provider</string>
-    <string name="map_location_coordinates">Lat %.5f, Lng %.5f (%3$s)</string>
+    <string name="map_location_coordinates">Lat %1$.5f, Lng %2$.5f (%3$s)</string>
     <string name="map_location_timestamp">Updated at %1$s</string>
     <string name="map_open_in_maps_button">Open in Maps</string>
+    <string name="map_arrived_button">Arrived</string>
+    <string name="map_delivered_button">Delivered successfully</string>
     <string name="map_navigation_missing_address">No delivery address is available for this order.</string>
     <string name="map_navigation_app_missing">No maps app is installed to handle navigation.</string>
+    <string name="map_no_active_order_vendor">No active delivery selected. Tap Open in Maps to navigate to %1$s.</string>
+    <string name="map_navigation_missing_destination">No destination is available to open in Maps.</string>
+    <string name="map_vendor_fallback_address" formatted="false"></string>
+    <string name="map_arrived_toast">Marked order #%1$d as arrived.</string>
+    <string name="map_delivered_toast">Marked order #%1$d as delivered.</string>
+    <string name="map_arrived_no_active_order">Select an active delivery before marking arrival.</string>
+    <string name="map_delivered_no_active_order">Select an active delivery before marking delivery complete.</string>
+    <string name="history_title">History</string>
 </resources>

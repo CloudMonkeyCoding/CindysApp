@@ -14,6 +14,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (SessionManager.hasActiveSession(this)) {
+            Intent intent = new Intent(this, DeliveriesActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
 
         Button startButton = findViewById(R.id.btnStart);

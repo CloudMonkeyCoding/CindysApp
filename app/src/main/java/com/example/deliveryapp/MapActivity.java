@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -16,7 +17,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
+import com.example.deliveryapp.SessionManager;
 import com.example.deliveryapp.tracking.OrderTrackingManager;
+import com.example.deliveryapp.network.UserProfile;
+import com.example.deliveryapp.network.UserService;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -26,6 +30,8 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
 
     private static final int REQUEST_LOCATION_PERMISSIONS = 2001;
     private static final String KEY_LOCATION_PERMISSIONS_REQUESTED = "location_permissions_requested";
+    public static final String EXTRA_FALLBACK_DESTINATION = "com.example.deliveryapp.extra.FALLBACK_DESTINATION";
+    private static final String TAG = "MapActivity";
 
     private View activeOrderContainer;
     private TextView emptyStateView;
@@ -37,6 +43,11 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     private TextView locationDetailsView;
     private TextView locationTimestampView;
     private Button navigationButton;
+    private Button arrivedStatusButton;
+    private Button deliveredStatusButton;
+    @Nullable
+    private String fallbackNavigationAddress;
+    private UserService userService;
 
     private OrderTrackingManager orderTrackingManager;
     @Nullable
@@ -49,6 +60,13 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         setContentView(R.layout.activity_customer_map);
         setupBottomNavigation(R.id.menu_map);
 
+        String providedFallback = getIntent().getStringExtra(EXTRA_FALLBACK_DESTINATION);
+        String resourceFallback = getString(R.string.map_vendor_fallback_address);
+        fallbackNavigationAddress = selectFallbackAddress(providedFallback, resourceFallback);
+        Log.d(TAG, "Initial fallback destination resolved. intent=" + providedFallback + ", resource=" + resourceFallback +
+                ", selected=" + fallbackNavigationAddress);
+        userService = new UserService();
+
         orderTrackingManager = OrderTrackingManager.getInstance(getApplicationContext());
         if (savedInstanceState != null) {
             hasRequestedLocationPermissions = savedInstanceState.getBoolean(
@@ -57,8 +75,10 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
             );
         }
         initViews();
+        applyFallbackNavigationAddress(fallbackNavigationAddress);
         refreshActiveOrder();
         refreshLocationState();
+        loadFallbackAddressFromProfile();
     }
 
     @Override
@@ -97,6 +117,8 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         locationDetailsView = findViewById(R.id.mapLocationDetails);
         locationTimestampView = findViewById(R.id.mapLocationTimestamp);
         navigationButton = findViewById(R.id.btnArrivedCustomer);
+        arrivedStatusButton = findViewById(R.id.btnMarkArrived);
+        deliveredStatusButton = findViewById(R.id.btnMarkDelivered);
 
         if (locationDetailsView != null) {
             locationDetailsView.setText(R.string.map_location_unavailable);
@@ -105,11 +127,22 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         if (navigationButton != null) {
             navigationButton.setOnClickListener(v -> launchNavigation());
         }
+
+        if (arrivedStatusButton != null) {
+            arrivedStatusButton.setOnClickListener(v -> handleArrivedTapped());
+        }
+
+        if (deliveredStatusButton != null) {
+            deliveredStatusButton.setOnClickListener(v -> handleDeliveredTapped());
+        }
+
+        updateNavigationButtonState();
     }
 
     private void refreshActiveOrder() {
         activeOrder = orderTrackingManager.getActiveOrder();
         if (activeOrder == null) {
+            Log.d(TAG, "No active order available; showing fallback state.");
             showNoActiveOrderState();
             return;
         }
@@ -141,30 +174,35 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
             orderSummaryView.setText(summary);
         }
 
-        if (orderAddressView != null) {
-            String address = activeOrder.getAddress();
-            if (TextUtils.isEmpty(address)) {
-                orderAddressView.setText(R.string.map_order_address_missing);
-            } else {
-                orderAddressView.setText(getString(R.string.map_order_address, address));
-            }
-        }
+        bindOrderAddress();
 
-        if (navigationButton != null) {
-            navigationButton.setEnabled(!TextUtils.isEmpty(activeOrder.getAddress()));
-        }
+        Log.d(TAG, "Active order refreshed. id=" + activeOrder.getOrderId() + ", hasAddress="
+                + !TextUtils.isEmpty(activeOrder.getAddress()));
+        updateNavigationButtonState();
     }
 
     private void showNoActiveOrderState() {
         if (activeOrderContainer != null) {
             activeOrderContainer.setVisibility(View.GONE);
         }
-        if (navigationButton != null) {
-            navigationButton.setEnabled(false);
-        }
         if (emptyStateView != null) {
             emptyStateView.setVisibility(View.VISIBLE);
+            updateEmptyStateMessage();
+        }
+        updateNavigationButtonState();
+    }
+
+    private void updateEmptyStateMessage() {
+        if (emptyStateView == null) {
+            Log.d(TAG, "Empty state view unavailable while updating message.");
+            return;
+        }
+        if (TextUtils.isEmpty(fallbackNavigationAddress)) {
+            Log.d(TAG, "Empty state using generic message; fallback destination missing.");
             emptyStateView.setText(R.string.map_no_active_order);
+        } else {
+            Log.d(TAG, "Empty state using fallback destination: " + fallbackNavigationAddress);
+            emptyStateView.setText(getString(R.string.map_no_active_order_vendor, fallbackNavigationAddress));
         }
     }
 
@@ -177,11 +215,13 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
             locationContainer.setVisibility(View.VISIBLE);
             locationDetailsView.setText(R.string.map_location_permission_missing);
             locationTimestampView.setVisibility(View.GONE);
+            Log.d(TAG, "Location unavailable; permissions not granted.");
             return;
         }
 
         OrderTrackingManager.TrackedLocation lastLocation = orderTrackingManager.getLastKnownLocation();
         if (lastLocation == null) {
+            Log.d(TAG, "No last known location available yet.");
             locationContainer.setVisibility(View.VISIBLE);
             locationDetailsView.setText(R.string.map_location_unavailable);
             locationTimestampView.setVisibility(View.GONE);
@@ -223,14 +263,21 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
     }
 
     private void launchNavigation() {
-        if (activeOrder == null) {
+        if (activeOrder == null && TextUtils.isEmpty(fallbackNavigationAddress)) {
             Toast.makeText(this, R.string.map_no_active_order, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String address = activeOrder.getAddress();
+        String address = null;
+        if (activeOrder != null) {
+            address = activeOrder.getAddress();
+        }
         if (TextUtils.isEmpty(address)) {
-            Toast.makeText(this, R.string.map_navigation_missing_address, Toast.LENGTH_SHORT).show();
+            address = fallbackNavigationAddress;
+        }
+
+        if (TextUtils.isEmpty(address)) {
+            Toast.makeText(this, R.string.map_navigation_missing_destination, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -240,10 +287,12 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException primaryException) {
+            Log.w(TAG, "Google Maps app unavailable, falling back to implicit intent.", primaryException);
             intent.setPackage(null);
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException fallbackException) {
+                Log.e(TAG, "No application available to handle map intent for address: " + address, fallbackException);
                 Toast.makeText(this, R.string.map_navigation_app_missing, Toast.LENGTH_SHORT).show();
             }
         }
@@ -294,5 +343,148 @@ public class MapActivity extends BottomNavActivity implements OrderTrackingManag
         }
 
         Toast.makeText(this, R.string.map_location_permission_denied, Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateNavigationButtonState() {
+        if (navigationButton == null) {
+            if (arrivedStatusButton != null) {
+                arrivedStatusButton.setEnabled(activeOrder != null);
+            }
+            if (deliveredStatusButton != null) {
+                deliveredStatusButton.setEnabled(activeOrder != null);
+            }
+            return;
+        }
+        boolean hasOrderAddress = activeOrder != null && !TextUtils.isEmpty(activeOrder.getAddress());
+        boolean hasFallback = !TextUtils.isEmpty(fallbackNavigationAddress);
+        boolean enabled = hasOrderAddress || hasFallback;
+        navigationButton.setEnabled(enabled);
+        Log.d(TAG, "Navigation button state updated. hasOrderAddress=" + hasOrderAddress
+                + ", hasFallback=" + hasFallback + ", enabled=" + enabled);
+
+        boolean hasActiveOrder = activeOrder != null;
+        if (arrivedStatusButton != null) {
+            arrivedStatusButton.setEnabled(hasActiveOrder);
+        }
+        if (deliveredStatusButton != null) {
+            deliveredStatusButton.setEnabled(hasActiveOrder);
+        }
+        Log.d(TAG, "Status buttons state updated. hasActiveOrder=" + hasActiveOrder
+                + ", arrivedEnabled=" + (arrivedStatusButton != null && arrivedStatusButton.isEnabled())
+                + ", deliveredEnabled=" + (deliveredStatusButton != null && deliveredStatusButton.isEnabled()));
+    }
+
+    private void handleArrivedTapped() {
+        if (activeOrder == null) {
+            Log.w(TAG, "Arrived button tapped without an active order selected.");
+            Toast.makeText(this, R.string.map_arrived_no_active_order, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.i(TAG, "Arrived button tapped for order " + activeOrder.getOrderId());
+        Toast.makeText(this,
+                getString(R.string.map_arrived_toast, activeOrder.getOrderId()),
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void handleDeliveredTapped() {
+        if (activeOrder == null) {
+            Log.w(TAG, "Delivered button tapped without an active order selected.");
+            Toast.makeText(this, R.string.map_delivered_no_active_order, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.i(TAG, "Delivered button tapped for order " + activeOrder.getOrderId());
+        Toast.makeText(this,
+                getString(R.string.map_delivered_toast, activeOrder.getOrderId()),
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void bindOrderAddress() {
+        if (orderAddressView == null || activeOrder == null) {
+            return;
+        }
+
+        String address = activeOrder.getAddress();
+        if (!TextUtils.isEmpty(address)) {
+            orderAddressView.setText(getString(R.string.map_order_address, address));
+            Log.d(TAG, "Displaying active order address: " + address);
+            return;
+        }
+
+        if (!TextUtils.isEmpty(fallbackNavigationAddress)) {
+            orderAddressView.setText(getString(R.string.map_order_address_fallback, fallbackNavigationAddress));
+            Log.d(TAG, "Displaying fallback address for active order: " + fallbackNavigationAddress);
+        } else {
+            orderAddressView.setText(R.string.map_order_address_missing);
+            Log.d(TAG, "Active order missing address and no fallback available.");
+        }
+    }
+
+    private void applyFallbackNavigationAddress(@Nullable String address) {
+        if (address != null) {
+            address = address.trim();
+        }
+        String sanitized = TextUtils.isEmpty(address) ? null : address;
+        fallbackNavigationAddress = sanitized;
+        Log.d(TAG, "Applying fallback destination: " + sanitized);
+        updateNavigationButtonState();
+        if (activeOrder != null && TextUtils.isEmpty(activeOrder.getAddress())) {
+            Log.d(TAG, "Updating active order view with fallback destination.");
+            bindOrderAddress();
+        }
+        if (activeOrder == null) {
+            updateEmptyStateMessage();
+        }
+    }
+
+    private void loadFallbackAddressFromProfile() {
+        if (!TextUtils.isEmpty(fallbackNavigationAddress)) {
+            Log.d(TAG, "Skipping profile fetch; fallback destination already set to: " + fallbackNavigationAddress);
+            return;
+        }
+
+        Integer userId = SessionManager.getUserId(getApplicationContext());
+        String email = SessionManager.getEmail(getApplicationContext());
+        if (!TextUtils.isEmpty(email)) {
+            email = email.trim();
+        }
+        if (TextUtils.isEmpty(email)) {
+            Log.w(TAG, "Cannot fetch profile fallback address; no email stored in session.");
+            return;
+        }
+
+        Log.d(TAG, "Fetching fallback address from profile. userId=" + userId + ", email=" + email);
+        userService.fetchUserProfile(userId, email, new UserService.UserProfileCallback() {
+            @Override
+            public void onSuccess(@NonNull UserProfile profile) {
+                String profileAddress = profile.getAddress();
+                if (!TextUtils.isEmpty(profileAddress)) {
+                    Log.d(TAG, "Profile returned address for navigation fallback: " + profileAddress);
+                    applyFallbackNavigationAddress(profileAddress);
+                } else {
+                    Log.w(TAG, "Profile response did not include an address field.");
+                }
+            }
+
+            @Override
+            public void onError(@NonNull String errorMessage) {
+                Log.e(TAG, "Failed to load profile fallback address: " + errorMessage);
+                // Keep silent; the static fallback string will remain in place if provided.
+            }
+        });
+    }
+
+    @Nullable
+    private String selectFallbackAddress(@Nullable String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (!TextUtils.isEmpty(value)) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 }
